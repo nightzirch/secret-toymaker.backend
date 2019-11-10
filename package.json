@@ -1,0 +1,10 @@
+{
+  "name": "secret-toymaker.backend",
+  "version": "1.0.0",
+  "description": "Secret Toymaker is a community-driven secret santa event for the Guild Wars 2 community",
+  "author": "Christian Grimsgaard",
+  "scripts": {
+    "serve": "firebase serve --only functions",
+    "start": "firebase functions:shell"
+  }
+}
