@@ -11,3 +11,4 @@ exports.receiveGift = receiveGift;
 exports.reportGift = reportGift;
 exports.stage = stage;
 exports.participate = participate;
+exports.updateApiKey = require("./https/updateApiKey")
