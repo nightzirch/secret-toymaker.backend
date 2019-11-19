@@ -5,4 +5,6 @@ const STAGES = {
   INACTIVE: "inactive"
 };
 
-module.exports = { STAGES };
+const YEAR = 2019;
+
+module.exports = { STAGES, YEAR };
