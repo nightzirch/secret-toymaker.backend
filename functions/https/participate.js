@@ -1,25 +1,38 @@
 const functions = require('firebase-functions');
-require('firebase/firestore');
-
+const { YEAR } = require("../config/constants");
 const db = require('../config/db');
 
-const moment = require('moment');
-moment.locale('nb');
+module.exports = functions.https.onCall(async ({user}, context) => {
+  // assume that folks calling this already have an account
+  let userAccount = await db.collection('participants').doc(user.uid).get()
+  if (!userAccount.exists) {return {error: "No such user"}}
 
-module.exports = functions.https.onCall((user, context) => {
-  // TODO: add check they aren't already participating
+  // get the user to get teh uuid
+  let userDetails = userAccount.data()
+  if(!userDetails.uuid){return {error: "No API Key set"}}
 
-  return db.collection('events').doc('2019')
-    .collection('participants').doc(user.uid)
-    .set({
-      participant: db.collection('participants').doc(user.uid),
-      entered: moment().format(),
-      gifts: []
-    })
-    .catch(err => {
-      console.log('Error when registering participation:', err);
-      return {
-        error: err
-      };
-    });
-});
+  let uuid = userDetails.uuid
+
+  // use uuid to set teh game accoutn for entry
+  let entry = {
+    participant: uuid,
+    entered: new Date().toISOString(),
+    // these manage if theya re marked as sent/recieved
+    sent:false,
+    received: false
+    // I am unsure what this is for so commenting it out for now
+    //gifts: [],
+
+    // these manage who is gifting to them and who they are gifting to
+    // giftee: undefined
+    // gifter: undefined
+  }
+  let entryResult = await db.collection('events').doc(YEAR).collection('participants').doc(uuid).set(entry).then(()=> {return true}).catch(() => {return false});
+
+  // check result and return to frontend
+  if(entryResult){
+    return {success: "Successfully added"}
+  }else{
+    return {error: "Error entering participant"}
+  }
+})
