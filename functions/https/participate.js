@@ -19,13 +19,13 @@ module.exports = functions.https.onCall(async ({user}, context) => {
     entered: new Date().toISOString(),
     // these manage if theya re marked as sent/recieved
     sent:false,
-    received: false
+    received: false,
     // I am unsure what this is for so commenting it out for now
     //gifts: [],
 
     // these manage who is gifting to them and who they are gifting to
-    // giftee: undefined
-    // gifter: undefined
+    giftee: null,
+    gifter: null,
   }
   let entryResult = await db.collection('events').doc(YEAR).collection('participants').doc(uuid).set(entry).then(()=> {return true}).catch(() => {return false});
 
