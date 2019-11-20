@@ -1,8 +1,9 @@
 const functions = require('firebase-functions');
 const rp = require('request-promise-native');
 const db = require('../config/db');
+const { getUUID } = require('../utils/utils');
 
-module.exports = functions.https.onCall(async({user,apiKey}, context) => {
+const updateApiKey = functions.https.onCall(async({user,apiKey}, context) => {
   // may tern the request into a genralised function if we get the mail endpoint, but for now it is sufficent
 
   // first check key
@@ -31,7 +32,7 @@ module.exports = functions.https.onCall(async({user,apiKey}, context) => {
   let uuid = result.id
 
   // add the data to userAccounts collection
-  await db.collection('userAccounts').doc(uuid).set({ uuid: uuid, apiKey:apiKey, lastValid: new Date().toISOString(), freeToPlay:freeToPlay }).catch(err => console.log(err))
+  await db.collection('userAccounts').doc(uuid).set({ uuid: uuid, apiKey:apiKey, lastValid: new Date().toISOString(), freeToPlay:freeToPlay, id: result.name }).catch(err => console.log(err))
 
   // for local testing
   if(user.uid){user = user.uid}
@@ -41,3 +42,17 @@ module.exports = functions.https.onCall(async({user,apiKey}, context) => {
   // return that is is a success
   return {success: "API key added"}
 })
+
+const updateApiKeyNote = functions.https.onCall(async({user,note}, context) => {
+  let uuid = await getUUID(user)
+  if(uuid.error){return {error: "no API key set"}}
+  uuid = uuid.success
+
+  // add the data to userAccounts collection
+  await db.collection('userAccounts').doc(uuid).set({ note: note }, {merge: true}).catch(err => console.log(err))
+
+  // return that is is a success
+  return {success: "Note added"}
+})
+
+module.exports = { updateApiKey, updateApiKeyNote }

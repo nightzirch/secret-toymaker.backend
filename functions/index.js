@@ -11,5 +11,6 @@ exports.receiveGift = receiveGift;
 exports.reportGift = reportGift;
 exports.stage = stage;
 exports.participate = participate;
-exports.updateApiKey = require("./https/updateApiKey")
+exports.updateApiKey = require("./https/gw2Accounts").updateApiKey
+exports.updateApiKeyNote = require("./https/gw2Accounts").updateApiKeyNote
 exports.setmatches = require("./https/setMatches")
