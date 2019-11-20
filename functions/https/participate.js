@@ -1,6 +1,7 @@
 const functions = require('firebase-functions');
 const { YEAR } = require("../config/constants");
 const db = require('../config/db');
+const { getGw2Account } = require('../utils/utils');
 
 module.exports = functions.https.onCall(async ({user}, context) => {
   // assume that folks calling this already have an account
@@ -12,6 +13,8 @@ module.exports = functions.https.onCall(async ({user}, context) => {
   if(!userDetails.uuid){return {error: "No API Key set"}}
 
   let uuid = userDetails.uuid
+
+  let gameAccount = await getGw2Account(uuid)
 
   // use uuid to set teh game accoutn for entry
   let entry = {
@@ -26,6 +29,9 @@ module.exports = functions.https.onCall(async ({user}, context) => {
     // these manage who is gifting to them and who they are gifting to
     giftee: null,
     gifter: null,
+
+    // mark if the account is F2P
+    freeToPlay:gameAccount.success.freeToPlay
   }
   let entryResult = await db.collection('events').doc(YEAR).collection('participants').doc(uuid).set(entry).then(()=> {return true}).catch(() => {return false});
 
