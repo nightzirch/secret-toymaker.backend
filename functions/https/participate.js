@@ -23,6 +23,7 @@ module.exports = functions.https.onCall(async ({user}, context) => {
     // these manage if theya re marked as sent/recieved
     sent:false,
     received: false,
+    reported: false,
     // I am unsure what this is for so commenting it out for now
     //gifts: [],
 
