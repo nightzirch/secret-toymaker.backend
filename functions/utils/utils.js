@@ -22,6 +22,13 @@ const getUUID = async(user) =>{
   return {success: uuid}
 }
 
+const getGw2Account = async (uuid) =>{
+  let userAccount = await db.collection('userAccounts').doc(uuid).get()
+  if (!userAccount.exists) {return {error: "No such giftee"}}
+  // get the user to get teh uuid
+  return {success: userAccount.data()}
+}
+
 /*
 const getParticipation = user => {
   return db.collection('events').doc('2019').collection('participants').doc(user.uid)
@@ -35,7 +42,7 @@ const getParticipation = user => {
 
 const setAllRandomParticipant = async () => {
   // this will run once manually
-  let allUsers = await db.collection('events').doc(YEAR).collection('participants').get()
+  let allUsers = await db.collection('events').doc(YEAR).collection('participants').where('freeToPlay', '==', false).get()
   if (allUsers.empty) {return {error: "No valid users"}}
 
   let tmp = {}
@@ -101,4 +108,4 @@ const getRandomParticipant = async (uuid) => {
 
 //*/
 
-module.exports = { getParticipant, getUUID, setAllRandomParticipant};
+module.exports = { getParticipant, getUUID, setAllRandomParticipant, getGw2Account};
