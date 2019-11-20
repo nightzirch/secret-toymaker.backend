@@ -5,3 +5,4 @@ node_modules/
 # files
 *.silver.*
 firebase-debug.log
+functions/testing.js
