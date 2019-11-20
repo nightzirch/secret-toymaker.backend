@@ -2,6 +2,7 @@ require('firebase/firestore');
 const admin = require('firebase-admin');
 
 const db = require('../config/db');
+const { YEAR } = require("../config/constants");
 
 const getParticipant = user => {
   return db.collection('participants').doc(user.uid).get()
@@ -9,6 +10,19 @@ const getParticipant = user => {
     .catch(err => err);
 };
 
+const getUUID = async(user) =>{
+  let userAccount = await db.collection('participants').doc(user.uid).get()
+  if (!userAccount.exists) {return {error: "No such user"}}
+
+  // get the user to get teh uuid
+  let userDetails = userAccount.data()
+  if(!userDetails.uuid){return {error: "No API Key set"}}
+
+  let uuid = userDetails.uuid
+  return {success: uuid}
+}
+
+/*
 const getParticipation = user => {
   return db.collection('events').doc('2019').collection('participants').doc(user.uid)
     .get()
@@ -17,38 +31,74 @@ const getParticipation = user => {
       console.log('Error getting participation: ', err);
     });
 };
+// */
 
-const getRandomParticipant = user => new Promise((resolve, reject) => {
-  db.collection('events').doc('2019').collection('participants')
-    .get()
-    .then(snapshot => {
-      if (!snapshot.empty) {
-        const excluded = [user.uid];
-        
-        var participant;
-        var maxAttempts = 10,
-          attempts = 0;
+const setAllRandomParticipant = async () => {
+  // this will run once manually
+  let allUsers = await db.collection('events').doc(YEAR).collection('participants').get()
+  if (allUsers.empty) {return {error: "No valid users"}}
 
-        const getRandom = () => {
-          const randomInt = Math.floor(Math.random() * snapshot.size);
-          const randomParticipant = snapshot.docs[randomInt].data();
-          if (!excluded.includes(randomParticipant.uid)) {
-            return randomParticipant;
-          }
-        }
+  let tmp = {}
+  let allUsersArray = []
 
-        while (!participant && attempts < maxAttempts) {
-          participant = getRandom();
-          attempts = attempts + 1;
-        }
+  allUsers.forEach(doc => {
+    let data = doc.data()
+    tmp[data.participant] = data
+    allUsersArray.push(data)
+  })
+  if(allUsersArray.length === 0){return {error: "No valid users"}}
 
-        console.log(`Found a participant fulfilling all criteria after ${attempts} attempts.`);
+  for(let i=0;i<allUsersArray.length;i++){
+    let gifter_uuid = allUsersArray[i].participant
 
-        if (!participant) { reject(`Found no participants fulfilling all criteria after ${attempts} attempts.`) }
-        resolve(participant.participant.get());
-      }
-      reject('Found no participants in the event');
-    });
-});
+    let tempArray = allUsersArray.filter(user => user.gifter === null && user.participant !== gifter_uuid)
+    let randomInt = Math.floor(Math.random() * tempArray.length)
 
-module.exports = { getParticipant, getParticipation, getRandomParticipant };
+    let giftee_uuid = tempArray[randomInt].participant
+
+    tmp[gifter_uuid].giftee = giftee_uuid
+    tmp[giftee_uuid].gifter = gifter_uuid
+
+    // updates allUsersArray to exclude this item
+    let foundIndex = allUsersArray.findIndex(x => x.participant === giftee_uuid);
+    allUsersArray[foundIndex].gifter = gifter_uuid;
+  }
+
+  // Batch it together
+  let batch = db.batch();
+  Object.keys(tmp).forEach(key => {
+      let reference = db.collection('events').doc(YEAR).collection('participants').doc(key)
+      batch.update(reference, {gifter: tmp[key].gifter, giftee: tmp[key].giftee});
+    })
+  await batch.commit()
+
+  return {success: "all users assigned"}
+}
+
+/*
+//
+const getRandomParticipant = async (uuid) => {
+  let allUsers = await db.collection('events').doc('2019').collection('participants').where('gifter', '==', null).get()
+  if (allUsers.empty) {return {error: "No valid users"}}
+
+  let allUsersArray = []
+  allUsers.forEach(doc => {
+    let data = doc.data()
+    // can also be changed to have an excluded array, but that may not be for now
+    // TODO: uncomment this before releasing
+    //if(data.participant !== uuid){
+    allUsersArray.push(data)
+    //}
+  });
+
+  if(allUsersArray.length === 0){return {error: "No valid users"}}
+
+  let randomInt = Math.floor(Math.random() * allUsersArray.length)
+  let randomUUID = allUsersArray[randomInt].participant
+
+  return {success: randomUUID}
+}
+
+//*/
+
+module.exports = { getParticipant, getUUID, setAllRandomParticipant};
