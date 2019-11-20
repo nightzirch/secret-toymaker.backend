@@ -33,7 +33,7 @@ const updateApiKey = functions.https.onCall(async({user,apiKey}, context) => {
   let uuid = result.id
 
   // add the data to userAccounts collection
-  await db.collection('userAccounts').doc(uuid).set({ uuid: uuid, apiKey:apiKey, lastValid: new Date().toISOString(), freeToPlay:freeToPlay, id: result.name }).catch(err => console.log(err))
+  await db.collection('userAccounts').doc(uuid).set({ uuid: uuid, apiKey:apiKey, lastValid: new Date().toISOString(), freeToPlay:freeToPlay, id: result.name, volunteer: false }).catch(err => console.log(err))
 
   // for local testing
   if(user.uid){user = user.uid}
@@ -81,4 +81,20 @@ const assignedGiftees = functions.https.onCall(async ({user}, context) => {
   return { success:gifteeArray }
 })
 
-module.exports = { updateApiKey, updateApiKeyNote, assignedGiftees }
+const updateVolunteer = functions.https.onCall(async({user,volunteer,count}, context) =>{
+  let uuid = await getUUID(user)
+  if(uuid.error){return {error: "no API key set"}}
+  uuid = uuid.success
+
+  // add the data to userAccounts collection
+  await db.collection('userAccounts').doc(uuid).set({ volunteer: volunteer, count:count }, {merge: true}).catch(err => console.log(err))
+
+  // return that is is a success
+  if(volunteer){
+    return {success: "Now Volunteering"}
+  }else{
+    return {success: "Stopped Volunteering"}
+  }
+})
+
+module.exports = { updateApiKey, updateApiKeyNote, assignedGiftees, updateVolunteer }
