@@ -1,13 +1,25 @@
 const functions = require('firebase-functions');
-require('firebase/firestore');
+const { setAllRandomParticipant} = require('../utils/utils');
 
-const db = require('../config/db');
-const utils = require('../utils/utils');
+// TODO: this will be for folks who wantt o volunteer for the second gifting session
+module.exports = functions.https.onCall(async({ user, isPrimaryGift }, context) => {
+  //await setAllRandomParticipant()
+  /*
+  let uuid = await getUUID(user)
+  if(uuid.error){return {error: "No Gw2 account connected" }}
+  uuid = uuid.success
 
-const moment = require('moment');
-moment.locale('nb');
+  let gifteeUUID = await getRandomParticipant(uuid)
+  if(gifteeUUID.error){return {error: "No Account to match to" }}
+  gifteeUUID = gifteeUUID.success
 
-module.exports = functions.https.onCall(({ user, isPrimaryGift }, context) => {
+
+  console.log(uuid)
+  console.log(gifteeUUID)
+
+   */
+
+  /*
   utils.getParticipation(user)
     .then(participationDoc => {
       if (!participationDoc.exists) { return null }
@@ -65,4 +77,6 @@ module.exports = functions.https.onCall(({ user, isPrimaryGift }, context) => {
       console.log('Error getting participation: ', err);
       return err;
     });
+
+   //*/
 });
