@@ -55,8 +55,6 @@ const receiveGift = functions.https.onCall(async ({user}, context) => {
 // reports gift
 const reportGift = functions.https.onCall(async({user, message}, context) => {
   // marks teh senders account
-
-  // marks teh senders account
   let uuid = await getUUID(user)
   if(uuid.error){return {error: "no API key set"}}
   uuid = uuid.success
