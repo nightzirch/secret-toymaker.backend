@@ -1,10 +1,8 @@
 const initGift = require("./https/initGift");
-const sendGift = require("./https/sendGift");
-const receiveGift = require("./https/receiveGift");
-const reportGift = require("./https/reportGift");
 const stage = require("./https/stage");
 const participate = require("./https/participate");
 const {assignedGiftees, updateApiKey, updateApiKeyNote, updateVolunteer} = require("./https/gw2Accounts")
+const { sendGift, receiveGift, reportGift, getNotSent, getNotReceived, getReported} = require("./https/gifts")
 
 exports.initGift = initGift;
 exports.sendGift = sendGift;
@@ -17,5 +15,12 @@ exports.updateApiKeyNote = updateApiKeyNote
 exports.assignedGiftees = assignedGiftees
 exports.updateVolunteer = updateVolunteer
 
-// for setting the matches, beware
+
+// admin commands
+exports.getNotSent = getNotSent
+exports.getNotReceived = getNotReceived
+exports.getReported = getReported
+//exports.testing = require("./testing")
+
+// for setting the matches, beware can only be done once
 exports.setmatches = require("./https/setMatches")
