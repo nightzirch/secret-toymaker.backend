@@ -12,3 +12,4 @@ exports.reportGift = reportGift;
 exports.stage = stage;
 exports.participate = participate;
 exports.updateApiKey = require("./https/updateApiKey")
+exports.setmatches = require("./https/setMatches")
