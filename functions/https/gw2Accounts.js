@@ -1,7 +1,8 @@
 const functions = require('firebase-functions');
 const rp = require('request-promise-native');
 const db = require('../config/db');
-const { getUUID } = require('../utils/utils');
+const { getUUID, getGw2Account } = require('../utils/utils');
+const { YEAR } = require("../config/constants");
 
 const updateApiKey = functions.https.onCall(async({user,apiKey}, context) => {
   // may tern the request into a genralised function if we get the mail endpoint, but for now it is sufficent
@@ -55,4 +56,29 @@ const updateApiKeyNote = functions.https.onCall(async({user,note}, context) => {
   return {success: "Note added"}
 })
 
-module.exports = { updateApiKey, updateApiKeyNote }
+const assignedGiftees = functions.https.onCall(async ({user}, context) => {
+  let gifter_uuid = await getUUID(user)
+  if(gifter_uuid.error){return {error: "no API key set"}}
+  gifter_uuid = gifter_uuid.success
+
+  let giftee = await db.collection('events').doc(YEAR).collection('participants').where('gifter', '==', gifter_uuid).get()
+  if (giftee.empty) {return {error: "No valid users"}}
+
+  let gifteeArrayRaw = []
+  giftee.forEach(doc => {gifteeArrayRaw.push(doc.data())});
+
+  // array in case the user is sending gifts to f2p folks
+  let gifteeArray = []
+  for (const gifteeData of gifteeArrayRaw) {
+    // eslint-disable-next-line no-await-in-loop
+    let userAccount = await getGw2Account(gifteeData.participant)
+    let userDetails = userAccount.success
+    gifteeArray.push({
+      name:userDetails.id,
+      note:userDetails.note,
+    })
+  }
+  return { success:gifteeArray }
+})
+
+module.exports = { updateApiKey, updateApiKeyNote, assignedGiftees }
