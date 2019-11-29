@@ -91,6 +91,7 @@ const updateVolunteer = functions.https.onCall(async({user,volunteer,count}, con
   if(!volunteer){volunteer = true}
   if(!count){count = 1}
 
+  // todo: update the main user account to what years the user did what
   // add the data to userAccounts collection
   await db.collection('events').doc(YEAR).collection('participants').doc(uuid).set({ volunteer: volunteer, count:count }, {merge: true}).catch(err => console.log(err))
 
