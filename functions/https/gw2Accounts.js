@@ -82,12 +82,17 @@ const assignedGiftees = functions.https.onCall(async ({user}, context) => {
 })
 
 const updateVolunteer = functions.https.onCall(async({user,volunteer,count}, context) =>{
+  if(!user){return {error: "no user set"}}
   let uuid = await getUUID(user)
   if(uuid.error){return {error: "no API key set"}}
   uuid = uuid.success
 
+  // set defaults if they arent passed
+  if(!volunteer){volunteer = true}
+  if(!count){count = 1}
+
   // add the data to userAccounts collection
-  await db.collection('userAccounts').doc(uuid).set({ volunteer: volunteer, count:count }, {merge: true}).catch(err => console.log(err))
+  await db.collection('events').doc(YEAR).collection('participants').doc(uuid).set({ volunteer: volunteer, count:count }, {merge: true}).catch(err => console.log(err))
 
   // return that is is a success
   if(volunteer){
