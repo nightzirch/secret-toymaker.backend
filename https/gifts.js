@@ -1,6 +1,6 @@
 const functions = require('firebase-functions');
 require('firebase/firestore');
-const { getUUID, getGw2Account } = require('../utils/utils');
+const { getUUID, getGeneralQueries } = require('../utils/utils');
 const { YEAR } = require("../config/constants");
 const db = require('../config/db');
 
@@ -86,43 +86,19 @@ const reportGift = functions.https.onCall(async({user, message}, context) => {
 // for admin use only - these return a list of details
 /*******************************************************************/
 
-async function getGeneral(field, operation, value, skip, limit){
-  if(typeof skip === "undefined"){skip = 0}
-  if(typeof limit === "undefined"){limit = 100}
-
-  let result = []
-  let results = await db.collection('events').doc(YEAR).collection('participants').where(field, operation, value).startAt(skip).limit(limit).get()
-
-  if (results.empty) {return result}
-
-  let resultsArray = []
-  results.forEach( (doc) => {resultsArray.push(doc.data())});
-
-  for (let i=0;i<resultsArray.length;i++) {
-    let user = resultsArray[i]
-
-    // eslint-disable-next-line no-await-in-loop
-    let userAccount = await getGw2Account(user.participant)
-    user.name = userAccount.success.id
-
-    result.push(user)
-  }
-  return result
-}
-
 // returns list of folks who have not sent
 const getNotSent = functions.https.onCall(async({skip, limit}, context) => {
-  return {success: await getGeneral('sent', '==', false, skip, limit)}
+  return {success: await getGeneralQueries('sent', '==', false, skip, limit)}
 })
 
 // returns list of folks who have not recieved
 const getNotReceived = functions.https.onCall(async({skip, limit}, context) => {
-  return {success: await getGeneral('received', '==', false, skip, limit)}
+  return {success: await getGeneralQueries('received', '==', false, skip, limit)}
 })
 
 // returns list of users that have been reported
 const getReported = functions.https.onCall(async({skip, limit}, context) => {
-  return {success: await getGeneral('reported', '==', true, skip, limit)}
+  return {success: await getGeneralQueries('reported', '==', true, skip, limit)}
 })
 
 // returns list of users that have sent and marked recieved
