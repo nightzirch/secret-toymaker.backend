@@ -28,3 +28,10 @@
 The data structure in Firebase Firestore is as follows:
 
 ![UML of data structure](./documentation/secret_toymaker_data_structure.png)
+
+
+----
+
+## Archives
+
+https://github.com/nightzirch/secret-toymaker.backend/tree/9b02460f95e3c1e0209f6e20d090a42884b4d7d8/legacy
