@@ -35,9 +35,6 @@ const updateApiKey = functions.https.onCall(async({user,apiKey}, context) => {
   // add the data to userAccounts collection
   await db.collection('userAccounts').doc(uuid).set({ uuid: uuid, apiKey:apiKey, lastValid: new Date().toISOString(), freeToPlay:freeToPlay, id: result.name, volunteer: false }).catch(err => console.log(err))
 
-  // for local testing
-  if(user.uid){user = user.uid}
-
   await db.collection('participants').doc(user).set({ uuid: uuid }, {merge: true}).catch(err => console.log(err))
 
   // return that is is a success

@@ -5,7 +5,7 @@ const { getGw2Account } = require('../utils/utils');
 
 module.exports = functions.https.onCall(async ({user}, context) => {
   // assume that folks calling this already have an account
-  let userAccount = await db.collection('participants').doc(user.uid).get()
+  let userAccount = await db.collection('participants').doc(user).get()
   if (!userAccount.exists) {return {error: "No such user"}}
 
   // get the user to get teh uuid

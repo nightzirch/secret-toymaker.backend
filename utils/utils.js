@@ -4,12 +4,6 @@ const admin = require('firebase-admin');
 const db = require('../config/db');
 const { YEAR } = require("../config/constants");
 
-const getParticipant = user => {
-  return db.collection('participants').doc(user.uid).get()
-    .then(doc => doc)
-    .catch(err => err);
-};
-
 const getUUID = async(user) =>{
   let userAccount = await db.collection('participants').doc(user).get()
   if (!userAccount.exists) {return {error: "No such user"}}
@@ -28,17 +22,6 @@ const getGw2Account = async (uuid) =>{
   // get the user to get teh uuid
   return {success: userAccount.data()}
 }
-
-/*
-const getParticipation = user => {
-  return db.collection('events').doc('2019').collection('participants').doc(user.uid)
-    .get()
-    .then(doc => doc)
-    .catch(err => {
-      console.log('Error getting participation: ', err);
-    });
-};
-// */
 
 const setAllRandomParticipant = async () => {
   // this will run once manually
@@ -108,4 +91,4 @@ const getRandomParticipant = async (uuid) => {
 
 //*/
 
-module.exports = { getParticipant, getUUID, setAllRandomParticipant, getGw2Account};
+module.exports = { getUUID, setAllRandomParticipant, getGw2Account};
