@@ -6,7 +6,7 @@ const { YEAR } = require("../config/constants");
 const db = require('../config/db');
 const { getGw2Account } = require('../utils/utils');
 
-module.exports = functions.https.onCall(async ({user}, context) => {
+const participate = functions.https.onCall(async ({user}, context) => {
   // assume that folks calling this already have an account
   let userAccount = await db.collection('participants').doc(user).get()
   if (!userAccount.exists) {return {error: "No such user"}}
@@ -46,3 +46,5 @@ module.exports = functions.https.onCall(async ({user}, context) => {
     return {error: "Error entering participant"}
   }
 })
+
+module.exports = { participate }
