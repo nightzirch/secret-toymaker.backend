@@ -65,30 +65,92 @@ const setAllRandomParticipant = async () => {
   return {success: "all users assigned"}
 }
 
-/*
-//
-const getRandomParticipant = async (uuid) => {
-  let allUsers = await db.collection('events').doc('2019').collection('participants').where('gifter', '==', null).get()
-  if (allUsers.empty) {return {error: "No valid users"}}
+async function getGeneralQueries(field, operation, value, skip, limit){
+  if(typeof skip === "undefined"){skip = 0}
+  if(typeof limit === "undefined"){limit = 100}
 
-  let allUsersArray = []
-  allUsers.forEach(doc => {
-    let data = doc.data()
-    // can also be changed to have an excluded array, but that may not be for now
-    // TODO: uncomment this before releasing
-    //if(data.participant !== uuid){
-    allUsersArray.push(data)
-    //}
-  });
+  let result = []
+  let results = await db.collection('events').doc(YEAR).collection('participants').where(field, operation, value).startAt(skip).limit(limit).get()
 
-  if(allUsersArray.length === 0){return {error: "No valid users"}}
+  if (results.empty) {return result}
 
-  let randomInt = Math.floor(Math.random() * allUsersArray.length)
-  let randomUUID = allUsersArray[randomInt].participant
+  let resultsArray = []
+  results.forEach( (doc) => {resultsArray.push(doc.data())});
 
-  return {success: randomUUID}
+  for (let i=0;i<resultsArray.length;i++) {
+    let user = resultsArray[i]
+
+    // eslint-disable-next-line no-await-in-loop
+    let userAccount = await getGw2Account(user.participant)
+    user.name = userAccount.success.id
+
+    result.push(user)
+  }
+  return result
 }
 
-//*/
+const volunteerForNewGiftees = async (user, count) => {
+  let uuid = await getUUID(user)
+  if(uuid.error){return {error: uuid.error}}
+  uuid = uuid.success
 
-module.exports = { getUUID, setAllRandomParticipant, getGw2Account};
+  // check to see if said user has sent their initial gift
+  let sent = await db.collection('events').doc(YEAR).collection('participants').doc(uuid).get()
+  if (sent.empty) {return {error: "has not sent initial gift"}}
+
+  // normalise the quantities, just in case its spoofed
+  if(!count){count = 1}
+  if(count > 10){count = 1}
+  if(count < 1){count = 1}
+
+  // now get list of peoople who havent gotten a goft
+  let noGift = await db.collection('events').doc(YEAR).collection('participants').where("received", "==", false).get()
+  if (noGift.empty) {return {error: "has not sent initial gift"}}
+
+  // now loop through
+  // anyone who didnt (mark) send themselves is disqualified
+
+  let resultsArray = []
+  noGift.forEach( (doc) => {
+    let data = doc.data()
+    if(
+      data.sent &&
+      // these are to check if if the user is already on a send list
+      !data.second && !data.third
+    ){
+      resultsArray.push(data)
+    }
+  });
+
+  // this array gets returned to teh frontend
+  let result = []
+  // batch the updates together
+  let batch = db.batch();
+  for(let i=0;i<resultsArray.length;i++){
+    // only need to do up to the specified quantity
+    if (i >= count) break
+    let giftee_uuid = resultsArray[i].participant
+    // eslint-disable-next-line no-await-in-loop
+    let userAccount = await getGw2Account(giftee_uuid)
+    let userDetails = userAccount.success
+    result.push({
+      name:userDetails.id,
+      note:userDetails.note,
+    })
+
+    // update said user accounts with new gifter
+    let reference = db.collection('events').doc(YEAR).collection('participants').doc(giftee_uuid)
+
+    // this onlky needs a monor change to setup teh third round of gifting
+    let changes = {gifter: uuid, second: true}
+    batch.update(reference, changes);
+  }
+
+  // commit the batch update
+  await batch.commit()
+
+  // return the result after the database stuff is complete
+  return { success: result }
+}
+
+module.exports = { getUUID, setAllRandomParticipant, getGw2Account, getGeneralQueries, volunteerForNewGiftees};
