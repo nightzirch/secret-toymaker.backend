@@ -1,3 +1,8 @@
+/*
+This manages sending, recieving and reporting gifts.
+
+also has functions to return admin stuff as well
+*/
 const functions = require('firebase-functions');
 require('firebase/firestore');
 const { getUUID, getGeneralQueries } = require('../utils/utils');

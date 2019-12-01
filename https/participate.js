@@ -1,3 +1,6 @@
+/*
+This is for when folks decide to participate, sets up the required values
+*/
 const functions = require('firebase-functions');
 const { YEAR } = require("../config/constants");
 const db = require('../config/db');

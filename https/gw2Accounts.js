@@ -1,3 +1,6 @@
+/*
+THis manages everything account related sugh as adding api keys, nots, getting the assigned giftees and volunteering for mroe
+*/
 const functions = require('firebase-functions');
 const rp = require('request-promise-native');
 const db = require('../config/db');
