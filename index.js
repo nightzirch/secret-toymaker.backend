@@ -1,10 +1,8 @@
-const initGift = require("./https/initGift");
 const stage = require("./https/stage");
 const participate = require("./https/participate");
 const {assignedGiftees, updateApiKey, updateApiKeyNote, updateVolunteer} = require("./https/gw2Accounts")
 const { sendGift, receiveGift, reportGift, getNotSent, getNotReceived, getReported} = require("./https/gifts")
 
-exports.initGift = initGift;
 exports.sendGift = sendGift;
 exports.receiveGift = receiveGift;
 exports.reportGift = reportGift;
