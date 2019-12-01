@@ -2,23 +2,31 @@ const functions = require("firebase-functions");
 require("firebase/firestore");
 
 const db = require("../config/db");
-const { STAGES , YEAR} = require("../config/constants");
+const { StageTypes } = require("../config/constants");
+const Stage = require("../models/Stage");
+const { getCurrentEvent } = require("../utils/utils");
 
-// this gets teh current stage info
+// this gets the current stage info
 const stage = functions.https.onCall(async(data, context) => {
-  let currentStage = { name: STAGES.INACTIVE, start: null, end: null }
+  let currentStage = new Stage(StageTypes.INACTIVE);
+  const event = await getCurrentEvent();
+  
+  if (!event) {return currentStage}
 
-  let stages =  await db.collection('events').doc(YEAR).collection('timebox').get()
+  const { year } = event;
+  const signupStart = event.signupStart.toDate();
+  const signupEnd = event.signupEnd.toDate();
+  const eventStart = event.eventStart.toDate();
+  const eventEnd = event.eventEnd.toDate();
+  const now = new Date();
 
-  if (stages.empty) {return currentStage}
-
-  let now = new Date().toISOString()
-  stages.forEach(doc => {
-    let stage = doc.data()
-    if(stage.start < now && now < stage.end){
-      currentStage = { name: doc.id, start: new Date(stage.start).getTime(), end: new Date(stage.end).getTime() }
-    }
-  })
+  if(signupStart < now && now < signupEnd) {
+      currentStage = new Stage(StageTypes.SIGNUP, year, signupStart, signupEnd);
+  } else if(signupEnd < now && now < eventStart) {
+      currentStage = new Stage(StageTypes.MATCHING, year, signupEnd, eventStart);
+  } else if(eventStart < now && now < eventEnd) {
+      currentStage = new Stage(StageTypes.GIFTING, year, eventStart, eventEnd);
+  }
   return currentStage
 });
 

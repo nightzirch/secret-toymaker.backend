@@ -1,10 +1,11 @@
-const STAGES = {
-  SIGNUP: "signup",
-  GIFTING: "gifting",
-  SPLASH: "splash",
-  INACTIVE: "inactive"
+const StageTypes = {
+  SIGNUP: "SIGNUP",
+  MATCHING: "MATCHING",
+  GIFTING: "GIFTING",
+  SPLASH: "SPLASH",
+  INACTIVE: "INACTIVE"
 };
 
 const YEAR = "2019";
 
-module.exports = { STAGES, YEAR };
+module.exports = { StageTypes, YEAR };

@@ -4,6 +4,27 @@ const admin = require('firebase-admin');
 const db = require('../config/db');
 const { YEAR } = require("../config/constants");
 
+const getCurrentEvent = async () => {
+  const events = await db.collection('events').get();
+  if (events.empty) {return {error: "No events currently active"}}
+  let currentEvent;
+
+  events.forEach(doc => {
+    if(!currentEvent) {
+      const event = doc.data();
+      const signupStart = event.signupStart.toDate();
+      const eventEnd = event.eventEnd.toDate();
+      const now = new Date();
+  
+      if(signupStart < now && now < eventEnd) {
+        currentEvent = event;
+      }
+    }
+  });
+
+  return currentEvent;
+}
+
 const getUUID = async(user) =>{
   let userAccount = await db.collection('participants').doc(user).get()
   if (!userAccount.exists) {return {error: "No such user"}}
@@ -153,4 +174,4 @@ const volunteerForNewGiftees = async (user, count) => {
   return { success: result }
 }
 
-module.exports = { getUUID, setAllRandomParticipant, getGw2Account, getGeneralQueries, volunteerForNewGiftees};
+module.exports = { getCurrentEvent, getUUID, setAllRandomParticipant, getGw2Account, getGeneralQueries, volunteerForNewGiftees};
