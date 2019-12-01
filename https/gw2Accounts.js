@@ -4,7 +4,7 @@ THis manages everything account related sugh as adding api keys, nots, getting t
 const functions = require('firebase-functions');
 const rp = require('request-promise-native');
 const db = require('../config/db');
-const { getUUID, getGw2Account } = require('../utils/utils');
+const { getUUID, getGw2Account, volunteerForNewGiftees } = require('../utils/utils');
 const { YEAR } = require("../config/constants");
 
 const updateApiKey = functions.https.onCall(async({user,apiKey}, context) => {
@@ -81,26 +81,8 @@ const assignedGiftees = functions.https.onCall(async ({user}, context) => {
   return { success:gifteeArray }
 })
 
-const updateVolunteer = functions.https.onCall(async({user,volunteer,count}, context) =>{
-  if(!user){return {error: "no user set"}}
-  let uuid = await getUUID(user)
-  if(uuid.error){return {error: "no API key set"}}
-  uuid = uuid.success
-
-  // set defaults if they arent passed
-  if(!volunteer){volunteer = true}
-  if(!count){count = 1}
-
-  // todo: update the main user account to what years the user did what
-  // add the data to userAccounts collection
-  await db.collection('events').doc(YEAR).collection('participants').doc(uuid).set({ volunteer: volunteer, count:count }, {merge: true}).catch(err => console.log(err))
-
-  // return that is is a success
-  if(volunteer){
-    return {success: "Now Volunteering"}
-  }else{
-    return {success: "Stopped Volunteering"}
-  }
+const volunteer = functions.https.onCall(async({user,count}, context) =>{
+  return await volunteerForNewGiftees(user, count)
 })
 
-module.exports = { updateApiKey, updateApiKeyNote, assignedGiftees, updateVolunteer }
+module.exports = { updateApiKey, updateApiKeyNote, assignedGiftees, volunteer }
