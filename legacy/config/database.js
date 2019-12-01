@@ -1,5 +1,0 @@
-module.exports = {
-  local: { //Only local db
-      url: 'mongodb://[REDACTED]:[REDACTED]@127.0.0.1:27017/secrettoymaker' // looks like mongodb://<user>:<pass>@mongo.onmodulus.net:27017/<db>
-  },
-};
