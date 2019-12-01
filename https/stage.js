@@ -5,7 +5,7 @@ const db = require("../config/db");
 const { STAGES , YEAR} = require("../config/constants");
 
 // this gets teh current stage info
-module.exports = functions.https.onCall(async(data, context) => {
+const stage = functions.https.onCall(async(data, context) => {
   let currentStage = { name: STAGES.INACTIVE, start: null, end: null }
 
   let stages =  await db.collection('events').doc(YEAR).collection('timebox').get()
@@ -21,3 +21,5 @@ module.exports = functions.https.onCall(async(data, context) => {
   })
   return currentStage
 });
+
+module.exports = { stage }
