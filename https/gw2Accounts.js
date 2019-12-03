@@ -84,6 +84,7 @@ const assignedGiftees = functions.https.onCall(async ({user}, context) => {
       reported: gifteeData.reported,
     })
   })
+  // runs teh above function in paralell
   await Promise.all(promises)
 
   return { success:gifteeArray }
