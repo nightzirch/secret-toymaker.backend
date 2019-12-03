@@ -1,6 +1,7 @@
 /*
 This is for when folks decide to participate, sets up the required values
 */
+const admin = require('firebase-admin');
 const functions = require('firebase-functions');
 const { EVENT } = require("../config/constants");
 const db = require('../config/db');
@@ -15,7 +16,8 @@ const participate = functions.https.onCall(async ({user, participate}, context) 
     // user wishes to undo their participation
 
     let deleteDoc =  await db.collection('events').doc(EVENT).collection('participants').doc(uuid).delete().then(()=> {return true}).catch(() => {return false})
-    if(deleteDoc){
+    let entryResult2 = await db.collection('events').doc(EVENT).set({participants: admin.firestore.FieldValue.increment(-1)}, {merge: true}).then(()=> {return true}).catch(() => {return false});
+    if(deleteDoc && entryResult2){
       return {success: "Successfully removed"}
     }else{
       return {error: "Error removing participant"}
@@ -45,9 +47,9 @@ const participate = functions.https.onCall(async ({user, participate}, context) 
     freeToPlay:gameAccount.success.freeToPlay
   }
   let entryResult = await db.collection('events').doc(EVENT).collection('participants').doc(uuid).set(entry).then(()=> {return true}).catch(() => {return false});
-
+  let entryResult2 = await db.collection('events').doc(EVENT).set({participants: admin.firestore.FieldValue.increment(1)}, {merge: true}).then(()=> {return true}).catch(() => {return false});
   // check result and return to frontend
-  if(entryResult){
+  if(entryResult && entryResult2){
     return {success: "Successfully added"}
   }else{
     return {error: "Error entering participant"}
