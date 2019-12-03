@@ -67,7 +67,7 @@ const assignedGiftees = functions.https.onCall(async ({user}, context) => {
   let gifteeArrayRaw = []
   giftee.forEach(doc => {gifteeArrayRaw.push(doc.data())});
 
-  // array in case the user is sending gifts to f2p folks
+  // array in case the user is sending gifts to multiple folks
   let gifteeArray = []
   for (const gifteeData of gifteeArrayRaw) {
     // eslint-disable-next-line no-await-in-loop
@@ -76,6 +76,12 @@ const assignedGiftees = functions.https.onCall(async ({user}, context) => {
     gifteeArray.push({
       name:userDetails.id,
       note:userDetails.note,
+      // used to identify the user
+      uuid:gifteeData.participant,
+      // these note the state
+      sent: gifteeData.sent,
+      received: gifteeData.received,
+      reported: gifteeData.reported,
     })
   }
   return { success:gifteeArray }
