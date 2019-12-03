@@ -57,32 +57,4 @@ const reportGift = functions.https.onCall(async({user, value, message}, context)
   }
 })
 
-
-/*******************************************************************/
-// for admin use only - these return a list of details
-/*******************************************************************/
-
-// returns list of folks who have not sent
-const getNotSent = functions.https.onCall(async({skip, limit}, context) => {
-  return {success: await getGeneralQueries('sent_own', '==', false, skip, limit)}
-})
-
-// returns list of folks who have not recieved
-const getNotReceived = functions.https.onCall(async({skip, limit}, context) => {
-  return {success: await getGeneralQueries('received', '==', false, skip, limit)}
-})
-
-// returns list of users that have been reported
-const getReported = functions.https.onCall(async({skip, limit}, context) => {
-  return {success: await getGeneralQueries('reported', '==', true, skip, limit)}
-})
-
-// returns list of users that have sent and marked recieved
-// not sure if this is required
-
-
-module.exports = {
-  sendGift, receiveGift, reportGift,
-  // the admin stuff
-  getNotSent, getNotReceived, getReported,
-}
+module.exports = { sendGift, receiveGift, reportGift, }

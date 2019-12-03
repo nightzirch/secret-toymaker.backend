@@ -1,7 +1,8 @@
 const { stage } = require("./https/stage");
 const { participate } = require("./https/participate");
 const { assignedGiftees, updateApiKey, updateApiKeyNote, volunteer } = require("./https/gw2Accounts")
-const { sendGift, receiveGift, reportGift, getNotSent, getNotReceived, getReported} = require("./https/gifts")
+const { sendGift, receiveGift, reportGift } = require("./https/gifts")
+const { getNotSent, getNotReceived, getReported, getStats} = require("./https/stats")
 
 exports.sendGift = sendGift;
 exports.receiveGift = receiveGift;
@@ -12,6 +13,7 @@ exports.updateApiKey = updateApiKey
 exports.updateApiKeyNote = updateApiKeyNote
 exports.assignedGiftees = assignedGiftees
 exports.volunteer = volunteer
+exports.getStats = getStats
 
 
 // admin commands
