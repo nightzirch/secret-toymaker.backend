@@ -155,17 +155,8 @@ const volunteerForNewGiftees = async (user, count) => {
   for(let i=0;i<resultsArray.length;i++){
     // only need to do up to the specified quantity
     if (i >= count) break
-    let giftee_uuid = resultsArray[i].participant
-    // eslint-disable-next-line no-await-in-loop
-    let userAccount = await getGw2Account(giftee_uuid)
-    let userDetails = userAccount.success
-    result.push({
-      name:userDetails.id,
-      note:userDetails.note,
-    })
-
     // update said user accounts with new gifter
-    let reference = db.collection('events').doc(YEAR).collection('participants').doc(giftee_uuid)
+    let reference = db.collection('events').doc(YEAR).collection('participants').doc(resultsArray[i].participant)
 
     // this onlky needs a monor change to setup teh third round of gifting
     let changes = {gifter: uuid, second: true}
@@ -176,7 +167,7 @@ const volunteerForNewGiftees = async (user, count) => {
   await batch.commit()
 
   // return the result after the database stuff is complete
-  return { success: result }
+  return { success: "Please refresh the giftee list" }
 }
 
 /**
