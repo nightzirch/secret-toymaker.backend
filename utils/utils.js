@@ -198,15 +198,19 @@ async function markGifteeAccount({uuid, user}, {field, message, value}){
   if(typeof value === "undefined"){value=true}
   let tmp = {}
   tmp[field] = value
-  if(!message){tmp.report = message}
+  if(message){tmp.report = message}
 
   let entryResult = await db.collection('events').doc(EVENT).collection('participants').doc(uuid).set(tmp, {merge: true}).then(()=> {return true}).catch(() => {return false});
 
+  let tmp2 = {}
+  tmp2[field] = admin.firestore.FieldValue.increment(value?1:-1)
+  let entryResult2 = await db.collection('events').doc(EVENT).set(tmp2, {merge: true}).then(()=> {return true}).catch(() => {return false});
+
   // check result and return to frontend
-  if(entryResult){
+  if(entryResult && entryResult2){
     return {success: "Successfully marked " + field}
   }else{
-    return {error: "Error in marking " + field}
+    return {error: "Error in marking " + field, entryResult:entryResult, entryResult2:entryResult2}
   }
 }
 
