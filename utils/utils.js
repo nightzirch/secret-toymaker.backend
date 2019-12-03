@@ -98,6 +98,7 @@ async function getGeneralQueries(field, operation, value, skip, limit){
   let resultsArray = []
   results.forEach( (doc) => {resultsArray.push(doc.data())});
 
+  // todo: turn this isnto an array of promices, then Promise.All()
   for (let i=0;i<resultsArray.length;i++) {
     let user = resultsArray[i]
 
@@ -135,7 +136,8 @@ const volunteerForNewGiftees = async (user, count) => {
   noGift.forEach( (doc) => {
     let data = doc.data()
     if(
-      data.sent &&
+      // check to see if they themselves have sent their gift
+      data.sent_own &&
       // these are to check if if the user is already on a send list
       !data.second && !data.third
     ){

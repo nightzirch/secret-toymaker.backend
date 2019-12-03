@@ -93,7 +93,7 @@ const reportGift = functions.https.onCall(async({user, message}, context) => {
 
 // returns list of folks who have not sent
 const getNotSent = functions.https.onCall(async({skip, limit}, context) => {
-  return {success: await getGeneralQueries('sent', '==', false, skip, limit)}
+  return {success: await getGeneralQueries('sent_own', '==', false, skip, limit)}
 })
 
 // returns list of folks who have not recieved

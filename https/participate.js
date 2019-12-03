@@ -23,12 +23,14 @@ const participate = functions.https.onCall(async ({user}, context) => {
   let entry = {
     participant: uuid,
     entered: new Date().toISOString(),
-    // these manage if theya re marked as sent/recieved
+
+    // this marks if they have sent their own gift
+    sent_own: false,
+
+    // these manage the status of this persons gift
     sent:false,
     received: false,
     reported: false,
-    // I am unsure what this is for so commenting it out for now
-    //gifts: [],
 
     // these manage who is gifting to them and who they are gifting to
     giftee: null,
