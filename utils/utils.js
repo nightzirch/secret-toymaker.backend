@@ -26,6 +26,9 @@ const getCurrentEvent = async () => {
 }
 
 const getUUID = async(user) =>{
+  // this is the uid, but cna accept the user object as well
+  if(user.uid){user = user.uid}
+
   let userAccount = await db.collection('participants').doc(user).get()
   if (!userAccount.exists) {return {error: "No such user"}}
 
