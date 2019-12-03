@@ -4,18 +4,23 @@ This is for when folks decide to participate, sets up the required values
 const functions = require('firebase-functions');
 const { YEAR } = require("../config/constants");
 const db = require('../config/db');
-const { getGw2Account } = require('../utils/utils');
+const { getGw2Account, getUUID } = require('../utils/utils');
 
-const participate = functions.https.onCall(async ({user}, context) => {
-  // assume that folks calling this already have an account
-  let userAccount = await db.collection('participants').doc(user).get()
-  if (!userAccount.exists) {return {error: "No such user"}}
+const participate = functions.https.onCall(async ({user, participate}, context) => {
+  let uuid = await getUUID(user)
+  if(uuid.error){return {error: "no API key set"}}
+  uuid = uuid.success
 
-  // get the user to get teh uuid
-  let userDetails = userAccount.data()
-  if(!userDetails.uuid){return {error: "No API Key set"}}
+  if(!participate){
+    // user wishes to undo their participation
 
-  let uuid = userDetails.uuid
+    let deleteDoc =  await db.collection('events').doc(YEAR).collection('participants').doc(uuid).delete().then(()=> {return true}).catch(() => {return false})
+    if(deleteDoc){
+      return {success: "Successfully removed"}
+    }else{
+      return {error: "Error removing participant"}
+    }
+  }
 
   let gameAccount = await getGw2Account(uuid)
 
