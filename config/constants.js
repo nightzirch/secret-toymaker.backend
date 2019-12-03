@@ -6,6 +6,6 @@ const StageTypes = {
   INACTIVE: "INACTIVE"
 };
 
-const YEAR = "2019";
+const EVENT = "2019";
 
-module.exports = { StageTypes, YEAR };
+module.exports = { StageTypes, EVENT };

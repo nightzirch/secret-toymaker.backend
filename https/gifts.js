@@ -6,7 +6,7 @@ also has functions to return admin stuff as well
 const functions = require('firebase-functions');
 require('firebase/firestore');
 const { getUUID, getGeneralQueries, markGifteeAccount } = require('../utils/utils');
-const { YEAR } = require("../config/constants");
+const { EVENT } = require("../config/constants");
 const db = require('../config/db');
 
 // marks gift as went
@@ -16,7 +16,7 @@ const sendGift = functions.https.onCall(async({user, giftee_uuid}, context) => {
   // gifter first
   let uuid = await getUUID(user)
   if(uuid.error){return {error: "no API key set"}}
-  let entryResult = await db.collection('events').doc(YEAR).collection('participants').doc(uuid.success).set({ sent_own: true }, {merge: true}).then(()=> {return true}).catch(() => {return false});
+  let entryResult = await db.collection('events').doc(EVENT).collection('participants').doc(uuid.success).set({ sent_own: true }, {merge: true}).then(()=> {return true}).catch(() => {return false});
 
   // giftee now, the giftee's uuid is known
   let gifteeStatus = await markGifteeAccount({uuid:giftee_uuid}, "sent")

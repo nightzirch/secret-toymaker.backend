@@ -2,7 +2,7 @@
 This is for when folks decide to participate, sets up the required values
 */
 const functions = require('firebase-functions');
-const { YEAR } = require("../config/constants");
+const { EVENT } = require("../config/constants");
 const db = require('../config/db');
 const { getGw2Account, getUUID } = require('../utils/utils');
 
@@ -14,7 +14,7 @@ const participate = functions.https.onCall(async ({user, participate}, context) 
   if(!participate){
     // user wishes to undo their participation
 
-    let deleteDoc =  await db.collection('events').doc(YEAR).collection('participants').doc(uuid).delete().then(()=> {return true}).catch(() => {return false})
+    let deleteDoc =  await db.collection('events').doc(EVENT).collection('participants').doc(uuid).delete().then(()=> {return true}).catch(() => {return false})
     if(deleteDoc){
       return {success: "Successfully removed"}
     }else{
@@ -44,7 +44,7 @@ const participate = functions.https.onCall(async ({user, participate}, context) 
     // mark if the account is F2P
     freeToPlay:gameAccount.success.freeToPlay
   }
-  let entryResult = await db.collection('events').doc(YEAR).collection('participants').doc(uuid).set(entry).then(()=> {return true}).catch(() => {return false});
+  let entryResult = await db.collection('events').doc(EVENT).collection('participants').doc(uuid).set(entry).then(()=> {return true}).catch(() => {return false});
 
   // check result and return to frontend
   if(entryResult){

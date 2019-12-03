@@ -5,7 +5,7 @@ const functions = require('firebase-functions');
 const rp = require('request-promise-native');
 const db = require('../config/db');
 const { getUUID, getGw2Account, volunteerForNewGiftees } = require('../utils/utils');
-const { YEAR } = require("../config/constants");
+const { EVENT } = require("../config/constants");
 
 const updateApiKey = functions.https.onCall(async({user,apiKey}, context) => {
   // may tern the request into a genralised function if we get the mail endpoint, but for now it is sufficent
@@ -61,7 +61,7 @@ const assignedGiftees = functions.https.onCall(async ({user}, context) => {
   if(gifter_uuid.error){return {error: "no API key set"}}
   gifter_uuid = gifter_uuid.success
 
-  let giftee = await db.collection('events').doc(YEAR).collection('participants').where('gifter', '==', gifter_uuid).get()
+  let giftee = await db.collection('events').doc(EVENT).collection('participants').where('gifter', '==', gifter_uuid).get()
   if (giftee.empty) {return {error: "No valid users"}}
 
   let gifteeArrayRaw = []

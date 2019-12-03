@@ -2,7 +2,7 @@ require('firebase/firestore');
 const admin = require('firebase-admin');
 
 const db = require('../config/db');
-const { YEAR } = require("../config/constants");
+const { EVENT } = require("../config/constants");
 
 const getCurrentEvent = async () => {
   const events = await db.collection('events').get();
@@ -49,7 +49,7 @@ const getGw2Account = async (uuid) =>{
 
 const setAllRandomParticipant = async () => {
   // this will run once manually
-  let allUsers = await db.collection('events').doc(YEAR).collection('participants').where('freeToPlay', '==', false).get()
+  let allUsers = await db.collection('events').doc(EVENT).collection('participants').where('freeToPlay', '==', false).get()
   if (allUsers.empty) {return {error: "No valid users"}}
 
   let tmp = {}
@@ -81,7 +81,7 @@ const setAllRandomParticipant = async () => {
   // Batch it together
   let batch = db.batch();
   Object.keys(tmp).forEach(key => {
-      let reference = db.collection('events').doc(YEAR).collection('participants').doc(key)
+      let reference = db.collection('events').doc(EVENT).collection('participants').doc(key)
       batch.update(reference, {gifter: tmp[key].gifter, giftee: tmp[key].giftee});
     })
   await batch.commit()
@@ -94,7 +94,7 @@ async function getGeneralQueries(field, operation, value, skip, limit){
   if(typeof limit === "undefined"){limit = 100}
 
   let result = []
-  let results = await db.collection('events').doc(YEAR).collection('participants').where(field, operation, value).startAt(skip).limit(limit).get()
+  let results = await db.collection('events').doc(EVENT).collection('participants').where(field, operation, value).startAt(skip).limit(limit).get()
 
   if (results.empty) {return result}
 
@@ -120,7 +120,7 @@ const volunteerForNewGiftees = async (user, count) => {
   uuid = uuid.success
 
   // check to see if said user has sent their initial gift
-  let sent = await db.collection('events').doc(YEAR).collection('participants').doc(uuid).get()
+  let sent = await db.collection('events').doc(EVENT).collection('participants').doc(uuid).get()
   if (sent.empty) {return {error: "has not sent initial gift"}}
 
   // normalise the quantities, just in case its spoofed
@@ -129,7 +129,7 @@ const volunteerForNewGiftees = async (user, count) => {
   if(count < 1){count = 1}
 
   // now get list of peoople who havent gotten a goft
-  let noGift = await db.collection('events').doc(YEAR).collection('participants').where("received", "==", false).get()
+  let noGift = await db.collection('events').doc(EVENT).collection('participants').where("received", "==", false).get()
   if (noGift.empty) {return {error: "has not sent initial gift"}}
 
   // now loop through
@@ -156,7 +156,7 @@ const volunteerForNewGiftees = async (user, count) => {
     // only need to do up to the specified quantity
     if (i >= count) break
     // update said user accounts with new gifter
-    let reference = db.collection('events').doc(YEAR).collection('participants').doc(resultsArray[i].participant)
+    let reference = db.collection('events').doc(EVENT).collection('participants').doc(resultsArray[i].participant)
 
     // this onlky needs a monor change to setup teh third round of gifting
     let changes = {gifter: uuid, second: true}
@@ -197,7 +197,7 @@ async function markGifteeAccount({uuid, user}, field, message){
   tmp[field] = true
   if(!message){tmp.report = message}
 
-  let entryResult = await db.collection('events').doc(YEAR).collection('participants').doc(uuid).set(tmp, {merge: true}).then(()=> {return true}).catch(() => {return false});
+  let entryResult = await db.collection('events').doc(EVENT).collection('participants').doc(uuid).set(tmp, {merge: true}).then(()=> {return true}).catch(() => {return false});
 
   // check result and return to frontend
   if(entryResult){
