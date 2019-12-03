@@ -10,16 +10,17 @@ const { EVENT } = require("../config/constants");
 const db = require('../config/db');
 
 // marks gift as went
-const sendGift = functions.https.onCall(async({user, giftee_uuid}, context) => {
+const sendGift = functions.https.onCall(async({user, value, giftee_uuid}, context) => {
   // this has to mark both the giftee and gifter
 
+  if(typeof value === "undefined"){value = true}
   // gifter first
   let uuid = await getUUID(user)
   if(uuid.error){return {error: "no API key set"}}
-  let entryResult = await db.collection('events').doc(EVENT).collection('participants').doc(uuid.success).set({ sent_own: true }, {merge: true}).then(()=> {return true}).catch(() => {return false});
+  let entryResult = await db.collection('events').doc(EVENT).collection('participants').doc(uuid.success).set({ sent_own: value }, {merge: true}).then(()=> {return true}).catch(() => {return false});
 
   // giftee now, the giftee's uuid is known
-  let gifteeStatus = await markGifteeAccount({uuid:giftee_uuid}, "sent")
+  let gifteeStatus = await markGifteeAccount({uuid:giftee_uuid}, { field: "sent", value:value })
 
   // check result and return to frontend
   if(entryResult && gifteeStatus.success){
@@ -31,9 +32,9 @@ const sendGift = functions.https.onCall(async({user, giftee_uuid}, context) => {
 })
 
 // marks gift as recieved
-const receiveGift = functions.https.onCall(async ({user}, context) => {
+const receiveGift = functions.https.onCall(async ({user, value}, context) => {
   // on the giftee (current user)
-  let gifteeStatus = await markGifteeAccount({user:user}, "received")
+  let gifteeStatus = await markGifteeAccount({user:user},{ field: "received", value:value } )
 
   // check result and return to frontend
   if(gifteeStatus.success){
@@ -44,9 +45,9 @@ const receiveGift = functions.https.onCall(async ({user}, context) => {
 })
 
 // reports gift with an option for a message
-const reportGift = functions.https.onCall(async({user, message}, context) => {
+const reportGift = functions.https.onCall(async({user, value, message}, context) => {
   // on the giftee (current user)
-  let gifteeStatus = await markGifteeAccount({user:user}, "reported", message)
+  let gifteeStatus = await markGifteeAccount({user:user}, { field: "received", value:value, message:message })
 
   // check result and return to frontend
   if(gifteeStatus.success){

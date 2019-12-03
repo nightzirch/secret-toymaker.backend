@@ -174,11 +174,13 @@ const volunteerForNewGiftees = async (user, count) => {
  * @param {object} giftee - details about the giftee
  * @param {string} [giftee.uuid] - UUID of the giftee, if you do not know it
  * @param {string} [giftee.user] - If the UUID is unknown this is the giftee's uid or user object
- * @param {string} field - What part to mark: sent, received, reported
- * @param {string} [message] - If reporting allow a message
+ * @param {object} update - details about the giftee
+ * @param {string} update.field - What part to mark: sent, received, reported
+ * @param {string} [update.message] - If reporting allow a message
+ * @param {boolean} [update.value] - If reporting allow a message
  * @returns
  */
-async function markGifteeAccount({uuid, user}, field, message){
+async function markGifteeAccount({uuid, user}, {field, message, value}){
   // if someone is marking the gift sent they know the uuid of the giftee
   if(!uuid){
     if(!user){return {error: "no uuid or user requested"}}
@@ -193,8 +195,9 @@ async function markGifteeAccount({uuid, user}, field, message){
   if(!field){return {error: "no field defined"}}
   if(field !== "sent" && field !== "received" && field !== "reported"){return {error: "field is not one of the defined types"}}
 
+  if(typeof value === "undefined"){value=true}
   let tmp = {}
-  tmp[field] = true
+  tmp[field] = value
   if(!message){tmp.report = message}
 
   let entryResult = await db.collection('events').doc(EVENT).collection('participants').doc(uuid).set(tmp, {merge: true}).then(()=> {return true}).catch(() => {return false});
