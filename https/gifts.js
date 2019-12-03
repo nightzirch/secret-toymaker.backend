@@ -5,85 +5,55 @@ also has functions to return admin stuff as well
 */
 const functions = require('firebase-functions');
 require('firebase/firestore');
-const { getUUID, getGeneralQueries } = require('../utils/utils');
+const { getUUID, getGeneralQueries, markGifteeAccount } = require('../utils/utils');
 const { YEAR } = require("../config/constants");
 const db = require('../config/db');
 
 // marks gift as went
-const sendGift = functions.https.onCall(async({user}, context) => {
-  // marks their own account
+const sendGift = functions.https.onCall(async({user, giftee_uuid}, context) => {
+  // this has to mark both the giftee and gifter
 
+  // gifter first
   let uuid = await getUUID(user)
   if(uuid.error){return {error: "no API key set"}}
-  uuid = uuid.success
+  let entryResult = await db.collection('events').doc(YEAR).collection('participants').doc(uuid.success).set({ sent_own: true }, {merge: true}).then(()=> {return true}).catch(() => {return false});
 
-
-  let entryResult = await db.collection('events').doc(YEAR).collection('participants').doc(uuid).set({ sent: true }, {merge: true}).then(()=> {return true}).catch(() => {return false});
+  // giftee now, the giftee's uuid is known
+  let gifteeStatus = await markGifteeAccount({uuid:giftee_uuid}, "sent")
 
   // check result and return to frontend
-  if(entryResult){
+  if(entryResult && gifteeStatus.success){
     return {success: "Successfully marked sent"}
   }else{
-    return {error: "Error in marking sent"}
+    return {error: "Error in marking sent" + gifteeStatus}
   }
 
 })
 
 // marks gift as recieved
 const receiveGift = functions.https.onCall(async ({user}, context) => {
-  // marks teh senders account
-  let uuid = await getUUID(user)
-  if(uuid.error){return {error: "no API key set"}}
-  uuid = uuid.success
-
-  //gets teh gifter for teh above uuid
-  let gifter = await db.collection('events').doc(YEAR).collection('participants').where('giftee', '==', uuid).get()
-  if (gifter.empty) {return {error: "No valid users"}}
-
-  // problem with .where() is that it returns an array thingie
-  let gifterDetails = {}
-  gifter.forEach(doc => {gifterDetails=doc.data()});
-  if(!gifterDetails.participant){return {error: "No valid users"}}
-
-  let gifter_uuid = gifterDetails.participant
-
-  let entryResult = await db.collection('events').doc(YEAR).collection('participants').doc(gifter_uuid).set({ received: true }, {merge: true}).then(()=> {return true}).catch(() => {return false});
+  // on the giftee (current user)
+  let gifteeStatus = await markGifteeAccount({user:user}, "received")
 
   // check result and return to frontend
-  if(entryResult){
-    return {success: "Successfully marked received"}
+  if(gifteeStatus.success){
+    return {success: gifteeStatus.success}
   }else{
-    return {error: "Error in marking received"}
+    return {error: gifteeStatus.error}
   }
 })
 
-// reports gift
+// reports gift with an option for a message
 const reportGift = functions.https.onCall(async({user, message}, context) => {
-  // marks teh senders account
-  let uuid = await getUUID(user)
-  if(uuid.error){return {error: "no API key set"}}
-  uuid = uuid.success
-
-  //gets teh gifter for teh above uuid
-  let gifter = await db.collection('events').doc(YEAR).collection('participants').where('giftee', '==', uuid).get()
-  if (gifter.empty) {return {error: "No valid users"}}
-
-  // problem with .where() is that it returns an array thingie
-  let gifterDetails = {}
-  gifter.forEach(doc => {gifterDetails=doc.data()});
-  if(!gifterDetails.participant){return {error: "No valid users"}}
-
-  let gifter_uuid = gifterDetails.participant
-
-  let entryResult = await db.collection('events').doc(YEAR).collection('participants').doc(gifter_uuid).set({ reported: true, report: message }, {merge: true}).then(()=> {return true}).catch(() => {return false});
+  // on the giftee (current user)
+  let gifteeStatus = await markGifteeAccount({user:user}, "reported", message)
 
   // check result and return to frontend
-  if(entryResult){
-    return {success: "Successfully reported"}
+  if(gifteeStatus.success){
+    return {success: gifteeStatus.success}
   }else{
-    return {error: "Error in reporting"}
+    return {error: gifteeStatus.error}
   }
-
 })
 
 

@@ -179,4 +179,41 @@ const volunteerForNewGiftees = async (user, count) => {
   return { success: result }
 }
 
-module.exports = { getCurrentEvent, getUUID, setAllRandomParticipant, getGw2Account, getGeneralQueries, volunteerForNewGiftees};
+/**
+ * @param {object} giftee - details about the giftee
+ * @param {string} [giftee.uuid] - UUID of the giftee, if you do not know it
+ * @param {string} [giftee.user] - If the UUID is unknown this is the giftee's uid or user object
+ * @param {string} field - What part to mark: sent, received, reported
+ * @param {string} [message] - If reporting allow a message
+ * @returns
+ */
+async function markGifteeAccount({uuid, user}, field, message){
+  // if someone is marking the gift sent they know the uuid of the giftee
+  if(!uuid){
+    if(!user){return {error: "no uuid or user requested"}}
+
+    // if the uuid is undefined then take the user, search for teh account related and return that uuid
+    uuid = await getUUID(user)
+    if(uuid.error){return {error: "no API key set"}}
+    uuid = uuid.success
+  }
+
+  // checking teh field
+  if(!field){return {error: "no field defined"}}
+  if(field !== "sent" && field !== "received" && field !== "reported"){return {error: "field is not one of the defined types"}}
+
+  let tmp = {}
+  tmp[field] = true
+  if(!message){tmp.report = message}
+
+  let entryResult = await db.collection('events').doc(YEAR).collection('participants').doc(uuid).set(tmp, {merge: true}).then(()=> {return true}).catch(() => {return false});
+
+  // check result and return to frontend
+  if(entryResult){
+    return {success: "Successfully marked " + field}
+  }else{
+    return {error: "Error in marking " + field}
+  }
+}
+
+module.exports = { getCurrentEvent, getUUID, setAllRandomParticipant, getGw2Account, getGeneralQueries, volunteerForNewGiftees, markGifteeAccount};
