@@ -69,8 +69,8 @@ const assignedGiftees = functions.https.onCall(async ({user}, context) => {
 
   // array in case the user is sending gifts to multiple folks
   let gifteeArray = []
-  for (const gifteeData of gifteeArrayRaw) {
-    // eslint-disable-next-line no-await-in-loop
+
+  let promises = gifteeArrayRaw.map(async (gifteeData) => {
     let userAccount = await getGw2Account(gifteeData.participant)
     let userDetails = userAccount.success
     gifteeArray.push({
@@ -83,7 +83,9 @@ const assignedGiftees = functions.https.onCall(async ({user}, context) => {
       received: gifteeData.received,
       reported: gifteeData.reported,
     })
-  }
+  })
+  await Promise.all(promises)
+
   return { success:gifteeArray }
 })
 
