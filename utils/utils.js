@@ -196,6 +196,11 @@ async function markGifteeAccount({uuid, user}, {field, message, value}){
   if(field !== "sent" && field !== "received" && field !== "reported"){return {error: "field is not one of the defined types"}}
 
   if(typeof value === "undefined"){value=true}
+  let currentValueRaw = await db.collection('events').doc(EVENT).collection('participants').doc(uuid).get()
+  if (!currentValueRaw.exists) {return {error: "no such user"}}
+  let currentValue = currentValueRaw.data()
+  if(value === currentValue[field]){return {success: "Value already set"}}
+
   let tmp = {}
   tmp[field] = value
   if(message){tmp.report = message}
