@@ -186,9 +186,9 @@ async function markGifteeAccount({uuid, user}, {field, message, value}){
     if(!user){return {error: "no uuid or user requested"}}
 
     // if the uuid is undefined then take the user, search for teh account related and return that uuid
-    uuid = await getUUID(user)
-    if(uuid.error){return {error: "no API key set"}}
-    uuid = uuid.success
+    let tmp_uuid = await getUUID(user)
+    if(tmp_uuid.error){return {error: "no API key set"}}
+    uuid = tmp_uuid.success
   }
 
   // checking teh field
