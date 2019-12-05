@@ -5,7 +5,7 @@ const functions = require('firebase-functions');
 const rp = require('request-promise-native');
 const db = require('../config/db');
 const { getUUID, getGw2Account, volunteerForNewGiftees } = require('../utils/utils');
-const { YEAR } = require("../config/constants");
+const { EVENT } = require("../config/constants");
 
 const updateApiKey = functions.https.onCall(async({user,apiKey}, context) => {
   // may tern the request into a genralised function if we get the mail endpoint, but for now it is sufficent
@@ -61,23 +61,32 @@ const assignedGiftees = functions.https.onCall(async ({user}, context) => {
   if(gifter_uuid.error){return {error: "no API key set"}}
   gifter_uuid = gifter_uuid.success
 
-  let giftee = await db.collection('events').doc(YEAR).collection('participants').where('gifter', '==', gifter_uuid).get()
+  let giftee = await db.collection('events').doc(EVENT).collection('participants').where('gifter', '==', gifter_uuid).get()
   if (giftee.empty) {return {error: "No valid users"}}
 
   let gifteeArrayRaw = []
   giftee.forEach(doc => {gifteeArrayRaw.push(doc.data())});
 
-  // array in case the user is sending gifts to f2p folks
+  // array in case the user is sending gifts to multiple folks
   let gifteeArray = []
-  for (const gifteeData of gifteeArrayRaw) {
-    // eslint-disable-next-line no-await-in-loop
+
+  let promises = gifteeArrayRaw.map(async (gifteeData) => {
     let userAccount = await getGw2Account(gifteeData.participant)
     let userDetails = userAccount.success
     gifteeArray.push({
       name:userDetails.id,
       note:userDetails.note,
+      // used to identify the user
+      uuid:gifteeData.participant,
+      // these note the state
+      sent: gifteeData.sent,
+      received: gifteeData.received,
+      reported: gifteeData.reported,
     })
-  }
+  })
+  // runs teh above function in paralell
+  await Promise.all(promises)
+
   return { success:gifteeArray }
 })
 

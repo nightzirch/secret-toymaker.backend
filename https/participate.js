@@ -1,21 +1,28 @@
 /*
 This is for when folks decide to participate, sets up the required values
 */
+const admin = require('firebase-admin');
 const functions = require('firebase-functions');
-const { YEAR } = require("../config/constants");
+const { EVENT } = require("../config/constants");
 const db = require('../config/db');
-const { getGw2Account } = require('../utils/utils');
+const { getGw2Account, getUUID } = require('../utils/utils');
 
-const participate = functions.https.onCall(async ({user}, context) => {
-  // assume that folks calling this already have an account
-  let userAccount = await db.collection('participants').doc(user).get()
-  if (!userAccount.exists) {return {error: "No such user"}}
+const participate = functions.https.onCall(async ({user, participate}, context) => {
+  let uuid = await getUUID(user)
+  if(uuid.error){return {error: "no API key set"}}
+  uuid = uuid.success
 
-  // get the user to get teh uuid
-  let userDetails = userAccount.data()
-  if(!userDetails.uuid){return {error: "No API Key set"}}
+  if(!participate){
+    // user wishes to undo their participation
 
-  let uuid = userDetails.uuid
+    let deleteDoc =  await db.collection('events').doc(EVENT).collection('participants').doc(uuid).delete().then(()=> {return true}).catch(() => {return false})
+    let entryResult2 = await db.collection('events').doc(EVENT).set({participants: admin.firestore.FieldValue.increment(-1)}, {merge: true}).then(()=> {return true}).catch(() => {return false});
+    if(deleteDoc && entryResult2){
+      return {success: "Successfully removed"}
+    }else{
+      return {error: "Error removing participant"}
+    }
+  }
 
   let gameAccount = await getGw2Account(uuid)
 
@@ -23,12 +30,14 @@ const participate = functions.https.onCall(async ({user}, context) => {
   let entry = {
     participant: uuid,
     entered: new Date().toISOString(),
-    // these manage if theya re marked as sent/recieved
+
+    // this marks if they have sent their own gift
+    sent_own: false,
+
+    // these manage the status of this persons gift
     sent:false,
     received: false,
     reported: false,
-    // I am unsure what this is for so commenting it out for now
-    //gifts: [],
 
     // these manage who is gifting to them and who they are gifting to
     giftee: null,
@@ -37,10 +46,10 @@ const participate = functions.https.onCall(async ({user}, context) => {
     // mark if the account is F2P
     freeToPlay:gameAccount.success.freeToPlay
   }
-  let entryResult = await db.collection('events').doc(YEAR).collection('participants').doc(uuid).set(entry).then(()=> {return true}).catch(() => {return false});
-
+  let entryResult = await db.collection('events').doc(EVENT).collection('participants').doc(uuid).set(entry).then(()=> {return true}).catch(() => {return false});
+  let entryResult2 = await db.collection('events').doc(EVENT).set({participants: admin.firestore.FieldValue.increment(1)}, {merge: true}).then(()=> {return true}).catch(() => {return false});
   // check result and return to frontend
-  if(entryResult){
+  if(entryResult && entryResult2){
     return {success: "Successfully added"}
   }else{
     return {error: "Error entering participant"}
