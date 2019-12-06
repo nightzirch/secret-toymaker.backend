@@ -13,6 +13,8 @@ const db = require('../config/db');
 const sendGift = functions.https.onCall(async({user, value, giftee_uuid}, context) => {
   // this has to mark both the giftee and gifter
 
+  if(!giftee_uuid){return {error: "no giftee_uuid set"}}
+
   if(typeof value === "undefined"){value = true}
   // gifter first
   let uuid = await getUUID(user)
