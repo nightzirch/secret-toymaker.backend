@@ -4,6 +4,13 @@ const admin = require('firebase-admin');
 const db = require('../config/db');
 const { EVENT } = require("../config/constants");
 
+/**
+ * @typedef {Object} Result
+ * @property {string} [success] - Returned if the function is successful
+ * @property {string} [error] - Returned if the function fails, contains teh reason for failure
+ */
+
+
 const getCurrentEvent = async () => {
   const events = await db.collection('events').get();
   if (events.empty) {return {error: "No events currently active"}}
@@ -89,12 +96,20 @@ const setAllRandomParticipant = async () => {
   return {success: "all users assigned"}
 }
 
-async function getGeneralQueries(field, operation, value, skip, limit){
+/**
+ * @param {string} field - Field to search on: sent_own, received, reported
+ * @param comparison - The comparison can be <, <=, ==, >, >=, array-contains, in, or array-contains-any
+ * @param value - This is the value to search for, in most cases it will be boolean
+ * @param {number} [skip=0] - For pagination
+ * @param {number} [limit=100] - For Pagination
+ * @returns {array} - An array of participation entries
+ */
+async function getGeneralQueries(field, comparison, value, skip, limit){
   if(typeof skip === "undefined"){skip = 0}
   if(typeof limit === "undefined"){limit = 100}
 
   let result = []
-  let results = await db.collection('events').doc(EVENT).collection('participants').where(field, operation, value).startAt(skip).limit(limit).get()
+  let results = await db.collection('events').doc(EVENT).collection('participants').where(field, comparison, value).startAt(skip).limit(limit).get()
 
   if (results.empty) {return result}
 
@@ -114,6 +129,11 @@ async function getGeneralQueries(field, operation, value, skip, limit){
   return result
 }
 
+/**
+ * @param {string} user - This is the giftee's uid or user object
+ * @param {object} count - Number of (new) Giftees teh Gifter is volunteering for
+ * @returns {Result}
+ */
 const volunteerForNewGiftees = async (user, count) => {
   let uuid = await getUUID(user)
   if(uuid.error){return {error: uuid.error}}
@@ -178,7 +198,7 @@ const volunteerForNewGiftees = async (user, count) => {
  * @param {string} update.field - What part to mark: sent, received, reported
  * @param {string} [update.message] - If reporting allow a message
  * @param {boolean} [update.value] - If reporting allow a message
- * @returns
+ * @returns {Result}
  */
 async function markGifteeAccount({uuid, user}, {field, message, value}){
   // if someone is marking the gift sent they know the uuid of the giftee
