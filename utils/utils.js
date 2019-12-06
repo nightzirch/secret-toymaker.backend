@@ -109,7 +109,9 @@ async function getGeneralQueries(field, comparison, value, skip, limit){
   if(typeof limit === "undefined"){limit = 100}
 
   let result = []
-  let results = await db.collection('events').doc(EVENT).collection('participants').where(field, comparison, value).startAt(skip).limit(limit).get()
+  let results = await db.collection('events').doc(EVENT).collection('participants').where(field, comparison, value)
+  //.startAt(skip).limit(limit)
+  .get()
 
   if (results.empty) {return result}
 
