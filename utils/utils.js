@@ -116,16 +116,15 @@ async function getGeneralQueries(field, comparison, value, skip, limit){
   let resultsArray = []
   results.forEach( (doc) => {resultsArray.push(doc.data())});
 
-  // todo: turn this isnto an array of promices, then Promise.All()
-  for (let i=0;i<resultsArray.length;i++) {
-    let user = resultsArray[i]
-
-    // eslint-disable-next-line no-await-in-loop
+  let promises = resultsArray.map(async (user) => {
     let userAccount = await getGw2Account(user.participant)
     user.name = userAccount.success.id
 
     result.push(user)
-  }
+  })
+  // runs teh above function in paralell
+  await Promise.all(promises)
+
   return result
 }
 
