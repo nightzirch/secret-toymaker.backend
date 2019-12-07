@@ -4,7 +4,7 @@ THis manages everything account related sugh as adding api keys, nots, getting t
 const functions = require('firebase-functions');
 const rp = require('request-promise-native');
 const db = require('../config/db');
-const { getUUID, getGw2Account, volunteerForNewGiftees } = require('../utils/utils');
+const { getUUID, volunteerForNewGiftees } = require('../utils/utils');
 const { EVENT } = require("../config/constants");
 
 const updateApiKey = functions.https.onCall(async({user,apiKey}, context) => {
@@ -49,11 +49,13 @@ const updateApiKeyNote = functions.https.onCall(async({user,note}, context) => {
   if(uuid.error){return {error: "no API key set"}}
   uuid = uuid.success
 
-  // add the data to userAccounts collection
-  await db.collection('userAccounts').doc(uuid).set({ note: note }, {merge: true}).catch(err => console.log(err))
-
-  // return that is is a success
-  return {success: "Note added"}
+  // add the data to yearly participation data collection
+  let entryResult = await db.collection('events').doc(EVENT).collection('participants').doc(uuid).set({ note: note }, {merge: true}).then(()=> {return true}).catch(() => {return false});
+  if(entryResult){
+    return {success: "Note added"}
+  }else{
+    return {error: "Error adding note"}
+  }
 })
 
 const assignedGiftees = functions.https.onCall(async ({user}, context) => {
@@ -64,18 +66,13 @@ const assignedGiftees = functions.https.onCall(async ({user}, context) => {
   let giftee = await db.collection('events').doc(EVENT).collection('participants').where('gifter', '==', gifter_uuid).get()
   if (giftee.empty) {return {error: "No valid users"}}
 
-  let gifteeArrayRaw = []
-  giftee.forEach(doc => {gifteeArrayRaw.push(doc.data())});
-
   // array in case the user is sending gifts to multiple folks
   let gifteeArray = []
-
-  let promises = gifteeArrayRaw.map(async (gifteeData) => {
-    let userAccount = await getGw2Account(gifteeData.participant)
-    let userDetails = userAccount.success
+  giftee.forEach(doc => {
+    let gifteeData = doc.data()
     gifteeArray.push({
-      name:userDetails.id,
-      note:userDetails.note,
+      name:gifteeData.name,
+      note:gifteeData.note,
       // used to identify the user
       uuid:gifteeData.participant,
       // these note the state
@@ -84,8 +81,6 @@ const assignedGiftees = functions.https.onCall(async ({user}, context) => {
       reported: gifteeData.reported,
     })
   })
-  // runs teh above function in paralell
-  await Promise.all(promises)
 
   return { success:gifteeArray }
 })

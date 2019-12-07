@@ -117,8 +117,8 @@ const setAllRandomParticipant = async () => {
  * @returns {array} - An array of participation entries
  */
 async function getGeneralQueries(field, comparison, value, skip, limit){
-  if(typeof skip === "undefined"){skip = 0}
-  if(typeof limit === "undefined"){limit = 100}
+  //if(typeof skip === "undefined"){skip = 0}
+  //if(typeof limit === "undefined"){limit = 100}
 
   let result = []
   let results = await db.collection('events').doc(EVENT).collection('participants').where(field, comparison, value)
@@ -127,17 +127,9 @@ async function getGeneralQueries(field, comparison, value, skip, limit){
 
   if (results.empty) {return result}
 
-  let resultsArray = []
-  results.forEach( (doc) => {resultsArray.push(doc.data())});
-
-  let promises = resultsArray.map(async (user) => {
-    let userAccount = await getGw2Account(user.participant)
-    user.name = userAccount.success.id
-
-    result.push(user)
+  results.forEach( (doc) => {
+    result.push(doc.data())
   })
-  // runs teh above function in paralell
-  await Promise.all(promises)
 
   return result
 }
@@ -182,8 +174,6 @@ const volunteerForNewGiftees = async (user, count) => {
     }
   });
 
-  // this array gets returned to teh frontend
-  let result = []
   // batch the updates together
   let batch = db.batch();
   for(let i=0;i<resultsArray.length;i++){

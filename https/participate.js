@@ -43,6 +43,8 @@ const participate = functions.https.onCall(async ({user, participate}, context) 
     giftee: null,
     gifter: null,
 
+    // add this here, will save a call later
+    name:gameAccount.success.id,
     // mark if the account is F2P
     freeToPlay:gameAccount.success.freeToPlay
   }
