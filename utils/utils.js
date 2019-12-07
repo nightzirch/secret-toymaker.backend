@@ -5,6 +5,7 @@ const db = require('../config/db');
 const { EVENT } = require("../config/constants");
 
 /**
+ * This is the result object I use that standardises it and allows me to check if it is a success
  * @typedef {Object} Result
  * @property {string} [success] - Returned if the function is successful
  * @property {string} [error] - Returned if the function fails, contains teh reason for failure
@@ -32,6 +33,11 @@ const getCurrentEvent = async () => {
   return currentEvent;
 }
 
+/**
+ * This takes a user object or uid and returns teh uuid
+ * @param {string} user - user object or uid
+ * @returns {Result}
+ */
 const getUUID = async(user) =>{
   // this is the uid, but cna accept the user object as well
   if(user.uid){user = user.uid}
@@ -47,6 +53,11 @@ const getUUID = async(user) =>{
   return {success: uuid}
 }
 
+/**
+ * This takes a UUID and returns the Gw2 account details
+ * @param {string} uuid - Takes uuid and returns the gw2 account
+ * @returns {Result}
+ */
 const getGw2Account = async (uuid) =>{
   let userAccount = await db.collection('userAccounts').doc(uuid).get()
   if (!userAccount.exists) {return {error: "No such giftee"}}
@@ -97,6 +108,7 @@ const setAllRandomParticipant = async () => {
 }
 
 /**
+ * This queries teh database for folks who's participation matches the parameters specified
  * @param {string} field - Field to search on: sent_own, received, reported
  * @param comparison - The comparison can be <, <=, ==, >, >=, array-contains, in, or array-contains-any
  * @param value - This is the value to search for, in most cases it will be boolean
@@ -131,6 +143,7 @@ async function getGeneralQueries(field, comparison, value, skip, limit){
 }
 
 /**
+ * This is used to allow a person to volunteer for n new giftees where n is 1-10
  * @param {string} user - This is the giftee's uid or user object
  * @param {object} count - Number of (new) Giftees teh Gifter is volunteering for
  * @returns {Result}
@@ -192,6 +205,7 @@ const volunteerForNewGiftees = async (user, count) => {
 }
 
 /**
+ * This marks the giftee's account with the appropriate flags, only if its not already set.
  * @param {object} giftee - details about the giftee
  * @param {string} [giftee.uuid] - UUID of the giftee, if you do not know it
  * @param {string} [giftee.user] - If the UUID is unknown this is the giftee's uid or user object
