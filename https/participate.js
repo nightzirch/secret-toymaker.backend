@@ -38,6 +38,10 @@ const participate = functions.https.onCall(
     }
   }
 
+    // check if already exists
+    let currentValueRaw = await db.collection('events').doc(EVENT).collection('participants').doc(uuid).get()
+    if (currentValueRaw.exists) {return {success: "Already added"}}
+
   let gameAccount = await getGw2Account(uuid)
 
   // use uuid to set teh game accoutn for entry
