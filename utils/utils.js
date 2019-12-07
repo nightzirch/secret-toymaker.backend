@@ -65,6 +65,10 @@ const getGw2Account = async (uuid) =>{
   return {success: userAccount.data()}
 }
 
+/**
+ * This is the functions that matches everyone together for the initial round
+ * @returns {Result}
+ */
 const setAllRandomParticipant = async () => {
   // this will run once manually
   let allUsers = await db.collection('events').doc(EVENT).collection('participants').where('freeToPlay', '==', false).get()
