@@ -4,10 +4,24 @@ THis manages everything account related sugh as adding api keys, nots, getting t
 const functions = require('firebase-functions');
 const rp = require('request-promise-native');
 const db = require('../config/db');
-const { getUUID, getGw2Account, volunteerForNewGiftees } = require('../utils/utils');
+const { getUUID, volunteerForNewGiftees } = require('../utils/utils');
 const { EVENT } = require("../config/constants");
 
-const updateApiKey = functions.https.onCall(async({user,apiKey}, context) => {
+/**
+ * @namespace updateApiKey
+ * @return {updateApiKey~inner} - the returned function
+ */
+const updateApiKey = functions.https.onCall(
+  /**
+   * Adds an api Key to teh account
+   * @inner
+   * @param {object} data - details about the giftee
+   * @param {string} data.user - user object or uid
+   * @param {string} data.apiKey - api key
+   * @param {object} [context] - This is used by firebase, no idea what it does, I think its added automatically
+   * @returns {Result}
+   */
+  async({user,apiKey}, context) => {
   // may tern the request into a genralised function if we get the mail endpoint, but for now it is sufficent
 
   // first check key
@@ -44,19 +58,48 @@ const updateApiKey = functions.https.onCall(async({user,apiKey}, context) => {
   return {success: "API key added"}
 })
 
-const updateApiKeyNote = functions.https.onCall(async({user,note}, context) => {
+/**
+ * @namespace updateApiKeyNote
+ * @return {updateApiKeyNote~inner} - the returned function
+ */
+const updateApiKeyNote = functions.https.onCall(
+  /**
+   * Adds a note for the gifter
+   * @inner
+   * @param {object} data - details about the giftee
+   * @param {string} data.user - user object or uid
+   * @param {string} data.note - Note for teh gifter
+   * @param {object} [context] - This is used by firebase, no idea what it does, I think its added automatically
+   * @returns {Result}
+   */
+  async({user,note}, context) => {
   let uuid = await getUUID(user)
   if(uuid.error){return {error: "no API key set"}}
   uuid = uuid.success
 
-  // add the data to userAccounts collection
-  await db.collection('userAccounts').doc(uuid).set({ note: note }, {merge: true}).catch(err => console.log(err))
-
-  // return that is is a success
-  return {success: "Note added"}
+  // add the data to yearly participation data collection
+  let entryResult = await db.collection('events').doc(EVENT).collection('participants').doc(uuid).set({ note: note }, {merge: true}).then(()=> {return true}).catch(() => {return false});
+  if(entryResult){
+    return {success: "Note added"}
+  }else{
+    return {error: "Error adding note"}
+  }
 })
 
-const assignedGiftees = functions.https.onCall(async ({user}, context) => {
+/**
+ * @namespace assignedGiftees
+ * @return {assignedGiftees~inner} - the returned function
+ */
+const assignedGiftees = functions.https.onCall(
+  /**
+   * This gets teh giftees that are assigned to a gifter
+   * @inner
+   * @param {object} data - details about the giftee
+   * @param {string} data.user - user object or uid
+   * @param {object} [context] - This is used by firebase, no idea what it does, I think its added automatically
+   * @returns {Result}
+   */
+  async ({user}, context) => {
   let gifter_uuid = await getUUID(user)
   if(gifter_uuid.error){return {error: "no API key set"}}
   gifter_uuid = gifter_uuid.success
@@ -64,18 +107,13 @@ const assignedGiftees = functions.https.onCall(async ({user}, context) => {
   let giftee = await db.collection('events').doc(EVENT).collection('participants').where('gifter', '==', gifter_uuid).get()
   if (giftee.empty) {return {error: "No valid users"}}
 
-  let gifteeArrayRaw = []
-  giftee.forEach(doc => {gifteeArrayRaw.push(doc.data())});
-
   // array in case the user is sending gifts to multiple folks
   let gifteeArray = []
-
-  let promises = gifteeArrayRaw.map(async (gifteeData) => {
-    let userAccount = await getGw2Account(gifteeData.participant)
-    let userDetails = userAccount.success
+  giftee.forEach(doc => {
+    let gifteeData = doc.data()
     gifteeArray.push({
-      name:userDetails.id,
-      note:userDetails.note,
+      name:gifteeData.name,
+      note:gifteeData.note,
       // used to identify the user
       uuid:gifteeData.participant,
       // these note the state
@@ -84,13 +122,25 @@ const assignedGiftees = functions.https.onCall(async ({user}, context) => {
       reported: gifteeData.reported,
     })
   })
-  // runs teh above function in paralell
-  await Promise.all(promises)
 
   return { success:gifteeArray }
 })
 
-const volunteer = functions.https.onCall(async({user,count}, context) =>{
+/**
+ * @namespace volunteer
+ * @return {volunteer~inner} - the returned function
+ */
+const volunteer = functions.https.onCall(
+  /**
+   * This lets someone volunteer for more giftees
+   * @inner
+   * @param {object} data - details about the giftee
+   * @param {string} data.user - user object or uid
+   * @param {number} data.count - Number of new giftees they want
+   * @param {object} [context] - This is used by firebase, no idea what it does, I think its added automatically
+   * @returns {Result}
+   */
+  async({user,count}, context) =>{
   return await volunteerForNewGiftees(user, count)
 })
 

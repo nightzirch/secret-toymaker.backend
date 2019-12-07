@@ -4,6 +4,14 @@ const admin = require('firebase-admin');
 const db = require('../config/db');
 const { EVENT } = require("../config/constants");
 
+/**
+ * This is the result object I use that standardises it and allows me to check if it is a success
+ * @typedef {Object} Result
+ * @property {string} [success] - Returned if the function is successful
+ * @property {string} [error] - Returned if the function fails, contains teh reason for failure
+ */
+
+
 const getCurrentEvent = async () => {
   const events = await db.collection('events').get();
   if (events.empty) {return {error: "No events currently active"}}
@@ -25,6 +33,11 @@ const getCurrentEvent = async () => {
   return currentEvent;
 }
 
+/**
+ * This takes a user object or uid and returns teh uuid
+ * @param {string} user - user object or uid
+ * @returns {Result}
+ */
 const getUUID = async(user) =>{
   // this is the uid, but cna accept the user object as well
   if(user.uid){user = user.uid}
@@ -40,6 +53,11 @@ const getUUID = async(user) =>{
   return {success: uuid}
 }
 
+/**
+ * This takes a UUID and returns the Gw2 account details
+ * @param {string} uuid - Takes uuid and returns the gw2 account
+ * @returns {Result}
+ */
 const getGw2Account = async (uuid) =>{
   let userAccount = await db.collection('userAccounts').doc(uuid).get()
   if (!userAccount.exists) {return {error: "No such giftee"}}
@@ -47,6 +65,10 @@ const getGw2Account = async (uuid) =>{
   return {success: userAccount.data()}
 }
 
+/**
+ * This is the functions that matches everyone together for the initial round
+ * @returns {Result}
+ */
 const setAllRandomParticipant = async () => {
   // this will run once manually
   let allUsers = await db.collection('events').doc(EVENT).collection('participants').where('freeToPlay', '==', false).get()
@@ -89,31 +111,39 @@ const setAllRandomParticipant = async () => {
   return {success: "all users assigned"}
 }
 
-async function getGeneralQueries(field, operation, value, skip, limit){
-  if(typeof skip === "undefined"){skip = 0}
-  if(typeof limit === "undefined"){limit = 100}
+/**
+ * This queries teh database for folks who's participation matches the parameters specified
+ * @param {string} field - Field to search on: sent_own, received, reported
+ * @param comparison - The comparison can be <, <=, ==, >, >=, array-contains, in, or array-contains-any
+ * @param value - This is the value to search for, in most cases it will be boolean
+ * @param {number} [skip=0] - For pagination
+ * @param {number} [limit=100] - For Pagination
+ * @returns {array} - An array of participation entries
+ */
+async function getGeneralQueries(field, comparison, value, skip, limit){
+  //if(typeof skip === "undefined"){skip = 0}
+  //if(typeof limit === "undefined"){limit = 100}
 
   let result = []
-  let results = await db.collection('events').doc(EVENT).collection('participants').where(field, operation, value).startAt(skip).limit(limit).get()
+  let results = await db.collection('events').doc(EVENT).collection('participants').where(field, comparison, value)
+  //.startAt(skip).limit(limit)
+  .get()
 
   if (results.empty) {return result}
 
-  let resultsArray = []
-  results.forEach( (doc) => {resultsArray.push(doc.data())});
+  results.forEach( (doc) => {
+    result.push(doc.data())
+  })
 
-  // todo: turn this isnto an array of promices, then Promise.All()
-  for (let i=0;i<resultsArray.length;i++) {
-    let user = resultsArray[i]
-
-    // eslint-disable-next-line no-await-in-loop
-    let userAccount = await getGw2Account(user.participant)
-    user.name = userAccount.success.id
-
-    result.push(user)
-  }
   return result
 }
 
+/**
+ * This is used to allow a person to volunteer for n new giftees where n is 1-10
+ * @param {string} user - This is the giftee's uid or user object
+ * @param {object} count - Number of (new) Giftees teh Gifter is volunteering for
+ * @returns {Result}
+ */
 const volunteerForNewGiftees = async (user, count) => {
   let uuid = await getUUID(user)
   if(uuid.error){return {error: uuid.error}}
@@ -148,8 +178,6 @@ const volunteerForNewGiftees = async (user, count) => {
     }
   });
 
-  // this array gets returned to teh frontend
-  let result = []
   // batch the updates together
   let batch = db.batch();
   for(let i=0;i<resultsArray.length;i++){
@@ -171,6 +199,7 @@ const volunteerForNewGiftees = async (user, count) => {
 }
 
 /**
+ * This marks the giftee's account with the appropriate flags, only if its not already set.
  * @param {object} giftee - details about the giftee
  * @param {string} [giftee.uuid] - UUID of the giftee, if you do not know it
  * @param {string} [giftee.user] - If the UUID is unknown this is the giftee's uid or user object
@@ -178,7 +207,7 @@ const volunteerForNewGiftees = async (user, count) => {
  * @param {string} update.field - What part to mark: sent, received, reported
  * @param {string} [update.message] - If reporting allow a message
  * @param {boolean} [update.value] - If reporting allow a message
- * @returns
+ * @returns {Result}
  */
 async function markGifteeAccount({uuid, user}, {field, message, value}){
   // if someone is marking the gift sent they know the uuid of the giftee

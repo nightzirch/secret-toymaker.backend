@@ -7,7 +7,21 @@ const { EVENT } = require("../config/constants");
 const db = require('../config/db');
 const { getGw2Account, getUUID } = require('../utils/utils');
 
-const participate = functions.https.onCall(async ({user, participate}, context) => {
+/**
+ * @namespace participate
+ * @return {participate~inner} - the returned function
+ */
+const participate = functions.https.onCall(
+  /**
+   * This sets a users participation status
+   * @inner
+   * @param {object} data - details about the giftee
+   * @param {string} data.user - user object or uid
+   * @param {bool} [data.participate] - true or undefined if user is entering, false if theya re withdrawing
+   * @param {object} [context] - This is used by firebase, no idea what it does, I think its added automatically
+   * @returns {Result}
+   */
+  async ({user, participate}, context) => {
   let uuid = await getUUID(user)
   if(uuid.error){return {error: "no API key set"}}
   uuid = uuid.success
@@ -23,6 +37,10 @@ const participate = functions.https.onCall(async ({user, participate}, context) 
       return {error: "Error removing participant"}
     }
   }
+
+    // check if already exists
+    let currentValueRaw = await db.collection('events').doc(EVENT).collection('participants').doc(uuid).get()
+    if (currentValueRaw.exists) {return {success: "Already added"}}
 
   let gameAccount = await getGw2Account(uuid)
 
@@ -43,6 +61,8 @@ const participate = functions.https.onCall(async ({user, participate}, context) 
     giftee: null,
     gifter: null,
 
+    // add this here, will save a call later
+    name:gameAccount.success.id,
     // mark if the account is F2P
     freeToPlay:gameAccount.success.freeToPlay
   }
