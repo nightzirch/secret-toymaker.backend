@@ -75,7 +75,7 @@ const participate = functions.https.onCall(
     }
 
     let events = gameAccount.success.events
-    events.push({ event: EVENT, entered: entryDate, uuid: uuid })
+    events.push({ event: EVENT, entered: entryDate, uuid: uuid, sent:0, received:0, reported:0 })
 
     // adding the user to participants so tehy can get a match
     let entryResult = await db.collection('events').doc(EVENT).collection('participants').doc(uuid).set(entry).then(() => {return true}).catch(() => {return false})
