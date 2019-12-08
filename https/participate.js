@@ -17,7 +17,7 @@ const participate = functions.https.onCall(
    * @inner
    * @param {object} data - details about the giftee
    * @param {string} data.user - user object or uid
-   * @param {bool} [data.participate] - true or undefined if user is entering, false if theya re withdrawing
+   * @param {boolean} [data.participate] - true or undefined if user is entering, false if theya re withdrawing
    * @param {object} [context] - This is used by firebase, no idea what it does, I think its added automatically
    * @returns {Result}
    */

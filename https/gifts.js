@@ -19,7 +19,7 @@ const sendGift = functions.https.onCall(
    * @inner
    * @param {object} data - details about the giftee
    * @param {string} data.user - user object or uid
-   * @param {bool} data.value - marks it either true or false
+   * @param {boolean} data.value - marks it either true or false
    * @param {string} data.giftee_uuid - UUID of the giftee, if you do not know it
    * @param {object} [context] - This is used by firebase, no idea what it does, I think its added automatically
    * @returns {Result}
@@ -57,7 +57,7 @@ const receiveGift = functions.https.onCall(
    * @inner
    * @param {object} data - details about the giftee
    * @param {string} data.user - user object or uid
-   * @param {bool} data.value - marks it either true or false
+   * @param {boolean} data.value - marks it either true or false
    * @param {object} [context] - This is used by firebase, no idea what it does, I think its added automatically
    * @returns {Result}
    */
@@ -83,7 +83,7 @@ const reportGift = functions.https.onCall(
    * @inner
    * @param {object} data - details about the giftee
    * @param {string} data.user - user object or uid
-   * @param {bool} data.value - marks it either true or false
+   * @param {boolean} data.value - marks it either true or false
    * @param {string} [data.message] - message for reporting
    * @param {object} [context] - This is used by firebase, no idea what it does, I think its added automatically
    * @returns {Result}
