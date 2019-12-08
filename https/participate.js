@@ -92,4 +92,25 @@ const participate = functions.https.onCall(
     }
   })
 
-module.exports = { participate }
+/**
+ * @namespace participateStatus
+ * @return {participateStatus~inner} - the returned function
+ */
+const participateStatus = functions.https.onCall(
+  /**
+   * This get a users participation status/history
+   * @inner
+   * @param {object} data - details about the giftee
+   * @param {string} data.user - user object or uid
+   * @param {object} [context] - This is used by firebase, no idea what it does, I think its added automatically
+   * @returns {Result}
+   */
+  async ({user}, context) => {
+    let uuid = await getUUID(user)
+    if (uuid.error) {return { error: "no API key set" }}
+
+    let gameAccount = await getGw2Account(uuid.success)
+
+    return { success: gameAccount.success.events }
+  })
+module.exports = { participate, participateStatus }
