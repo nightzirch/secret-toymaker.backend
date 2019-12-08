@@ -50,7 +50,7 @@ const updateApiKey = functions.https.onCall(
   let uuid = result.id
 
   // add the data to userAccounts collection
-  await db.collection('userAccounts').doc(uuid).set({ uuid: uuid, apiKey:apiKey, lastValid: new Date().toISOString(), freeToPlay:freeToPlay, id: result.name, volunteer: false }).catch(err => console.log(err))
+  await db.collection('userAccounts').doc(uuid).set({ uuid: uuid, apiKey:apiKey, lastValid: new Date().toISOString(), freeToPlay:freeToPlay, id: result.name, volunteer: false, events: [] }).catch(err => console.log(err))
 
   await db.collection('participants').doc(user).set({ uuid: uuid }, {merge: true}).catch(err => console.log(err))
 
