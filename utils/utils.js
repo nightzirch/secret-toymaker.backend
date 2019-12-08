@@ -248,4 +248,46 @@ async function markGifteeAccount({uuid, user}, {field, message, value}){
   }
 }
 
-module.exports = { getCurrentEvent, getUUID, setAllRandomParticipant, getGw2Account, getGeneralQueries, volunteerForNewGiftees, markGifteeAccount};
+/**
+ * Records stats on a per user basis
+ * @param {object} details - details about the giftee
+ * @param {string} [details.gifter_uuid] - UUID of the giftee, if you do not know it
+ * @param {string} [details.user] - If the UUID is unknown this is the giftee's uid or user object
+ * @param {string} details.field - What part to mark: sent, received, reported
+ * @param {boolean} details.value - If reporting allow a message
+ * @returns {Result}
+ */
+async function markGw2Account({gifter_uuid, user, field, value}){
+  // gifter owns teh record
+
+  if(!gifter_uuid){
+    if(!user){return {error: "no gifter_uuid or user requested"}}
+
+    let uuid = getUUID(user)
+    let entryResult = await db.collection('events').doc(EVENT).collection('participants').doc(uuid.success).get().data()
+    gifter_uuid = entryResult.gifter
+
+    if(field === "received"){
+      let tmp0 = {}
+      tmp0[field] = admin.firestore.FieldValue.increment(value?1:-1)
+      await db.collection('userAccounts').doc(uuid.success).collection('events').doc(EVENT).set(tmp0, { merge: true }).then(() => {return true}).catch(() => {return false})
+
+      // set teh field for teh gifter account
+      field = "marked_received"
+    }
+  }
+
+  let tmp = {}
+  tmp[field] = admin.firestore.FieldValue.increment(value?1:-1)
+
+  let eventEntry = await db.collection('userAccounts').doc(gifter_uuid).collection('events').doc(EVENT).set(tmp, { merge: true }).then(() => {return true}).catch(() => {return false})
+  // check result and return
+
+  if(eventEntry){
+    return {success: "Successfully marked " + field}
+  }else{
+    return {error: "Error in marking " + field}
+  }
+}
+
+module.exports = { getCurrentEvent, getUUID, setAllRandomParticipant, getGw2Account, getGeneralQueries, volunteerForNewGiftees, markGifteeAccount, markGw2Account};
