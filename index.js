@@ -18,10 +18,10 @@ exports.participateStatus = participateStatus
 
 
 // admin commands
-exports.getNotSent = getNotSent
-exports.getNotReceived = getNotReceived
-exports.getReported = getReported
+//exports.getNotSent = getNotSent
+//exports.getNotReceived = getNotReceived
+//exports.getReported = getReported
 //exports.testing = require("./testing")
 
 // for setting the matches, beware can only be done once
-exports.setmatches = require("./https/setMatches")
+// exports.setmatches = require("./https/setMatches")
