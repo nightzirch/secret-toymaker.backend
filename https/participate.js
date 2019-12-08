@@ -34,7 +34,7 @@ const participate = functions.https.onCall(
 
       // get teh gw2 account, get ebvents and remove current event
       let gameAccount = await getGw2Account(uuid)
-      let events = gameAccount.events.filter(eventObject => eventObject.event !== EVENT);
+      let events = gameAccount.success.events.filter(eventObject => eventObject.event !== EVENT);
       let eventEntry = await db.collection('userAccounts').doc(uuid).set({ events: events }, { merge: true }).then(() => {return true}).catch(() => {return false})
 
       if (deleteDoc && counter && eventEntry) {
@@ -74,7 +74,7 @@ const participate = functions.https.onCall(
       freeToPlay: gameAccount.success.freeToPlay
     }
 
-    let events = gameAccount.events
+    let events = gameAccount.success.events
     events.push({ event: EVENT, entered: entryDate, uuid: uuid })
 
     // adding the user to participants so tehy can get a match
