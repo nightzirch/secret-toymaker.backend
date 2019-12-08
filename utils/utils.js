@@ -59,7 +59,7 @@ const getUUID = async(user) =>{
  * @returns {Result}
  */
 const getGw2Account = async (uuid) =>{
-  let userAccount = await db.collection('userAccounts').doc(uuid).get()
+  let userAccount = await db.collection('gw2Accounts').doc(uuid).get()
   if (!userAccount.exists) {return {error: "No such giftee"}}
   // get the user to get teh uuid
   return {success: userAccount.data()}
@@ -270,7 +270,7 @@ async function markGw2Account({gifter_uuid, user, field, value}){
     if(field === "received"){
       let tmp0 = {}
       tmp0[field] = admin.firestore.FieldValue.increment(value?1:-1)
-      await db.collection('userAccounts').doc(uuid.success).collection('events').doc(EVENT).set(tmp0, { merge: true }).then(() => {return true}).catch(() => {return false})
+      await db.collection('gw2Accounts').doc(uuid.success).collection('events').doc(EVENT).set(tmp0, { merge: true }).then(() => {return true}).catch(() => {return false})
 
       // set teh field for teh gifter account
       field = "marked_received"
@@ -280,7 +280,7 @@ async function markGw2Account({gifter_uuid, user, field, value}){
   let tmp = {}
   tmp[field] = admin.firestore.FieldValue.increment(value?1:-1)
 
-  let eventEntry = await db.collection('userAccounts').doc(gifter_uuid).collection('events').doc(EVENT).set(tmp, { merge: true }).then(() => {return true}).catch(() => {return false})
+  let eventEntry = await db.collection('gw2Accounts').doc(gifter_uuid).collection('events').doc(EVENT).set(tmp, { merge: true }).then(() => {return true}).catch(() => {return false})
   // check result and return
 
   if(eventEntry){

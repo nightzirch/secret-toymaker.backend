@@ -49,8 +49,8 @@ const updateApiKey = functions.https.onCall(
   // get uuid
   let uuid = result.id
 
-  // add the data to userAccounts collection
-  await db.collection('userAccounts').doc(uuid).set({ uuid: uuid, apiKey:apiKey, lastValid: new Date().toISOString(), freeToPlay:freeToPlay, id: result.name }).catch(err => console.log(err))
+  // add the data to gw2Accounts collection
+  await db.collection('gw2Accounts').doc(uuid).set({ uuid: uuid, apiKey:apiKey, lastValid: new Date().toISOString(), freeToPlay:freeToPlay, id: result.name }).catch(err => console.log(err))
 
   await db.collection('participants').doc(user).set({ uuid: uuid }, {merge: true}).catch(err => console.log(err))
 
