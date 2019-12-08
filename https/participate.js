@@ -30,8 +30,8 @@ const participate = functions.https.onCall(
     // user wishes to undo their participation
 
     let deleteDoc =  await db.collection('events').doc(EVENT).collection('participants').doc(uuid).delete().then(()=> {return true}).catch(() => {return false})
-    let entryResult2 = await db.collection('events').doc(EVENT).set({participants: admin.firestore.FieldValue.increment(-1)}, {merge: true}).then(()=> {return true}).catch(() => {return false});
-    if(deleteDoc && entryResult2){
+    let counter = await db.collection('events').doc(EVENT).set({participants: admin.firestore.FieldValue.increment(-1)}, {merge: true}).then(()=> {return true}).catch(() => {return false});
+    if(deleteDoc && counter){
       return {success: "Successfully removed"}
     }else{
       return {error: "Error removing participant"}
@@ -67,9 +67,9 @@ const participate = functions.https.onCall(
     freeToPlay:gameAccount.success.freeToPlay
   }
   let entryResult = await db.collection('events').doc(EVENT).collection('participants').doc(uuid).set(entry).then(()=> {return true}).catch(() => {return false});
-  let entryResult2 = await db.collection('events').doc(EVENT).set({participants: admin.firestore.FieldValue.increment(1)}, {merge: true}).then(()=> {return true}).catch(() => {return false});
+  let counter = await db.collection('events').doc(EVENT).set({participants: admin.firestore.FieldValue.increment(1)}, {merge: true}).then(()=> {return true}).catch(() => {return false});
   // check result and return to frontend
-  if(entryResult && entryResult2){
+  if(entryResult && counter){
     return {success: "Successfully added"}
   }else{
     return {error: "Error entering participant"}
