@@ -90,7 +90,7 @@ const reportGift = functions.https.onCall(
    */
   async({user, value, message}, context) => {
   // on the giftee (current user)
-  let gifteeStatus = await markGifteeAccount({user:user}, { field: "received", value:value, message:message })
+  let gifteeStatus = await markGifteeAccount({user:user}, { field: "reported", value:value, message:message })
 
   // check result and return to frontend
   if(gifteeStatus.success){
