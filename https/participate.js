@@ -32,10 +32,8 @@ const participate = functions.https.onCall(
       let deleteDoc = await db.collection('events').doc(EVENT).collection('participants').doc(uuid).delete().then(() => {return true}).catch(() => {return false})
       let counter = await db.collection('events').doc(EVENT).set({ participants: admin.firestore.FieldValue.increment(-1) }, { merge: true }).then(() => {return true}).catch(() => {return false});
 
-      // get teh gw2 account, get ebvents and remove current event
-      let gameAccount = await getGw2Account(uuid)
-      let events = gameAccount.success.events.filter(eventObject => eventObject.event !== EVENT);
-      let eventEntry = await db.collection('userAccounts').doc(uuid).set({ events: events }, { merge: true }).then(() => {return true}).catch(() => {return false})
+      // its now an entry in a collection, so remove that
+      let eventEntry = await db.collection('userAccounts').doc(uuid).collection('events').doc(EVENT).delete().then(() => {return true}).catch(() => {return false})
 
       if (deleteDoc && counter && eventEntry) {
         return { success: "Successfully removed" }
@@ -74,15 +72,12 @@ const participate = functions.https.onCall(
       freeToPlay: gameAccount.success.freeToPlay
     }
 
-    let events = gameAccount.success.events
-    events.push({ event: EVENT, entered: entryDate, uuid: uuid, sent:0, received:0, reported:0 })
-
     // adding the user to participants so tehy can get a match
     let entryResult = await db.collection('events').doc(EVENT).collection('participants').doc(uuid).set(entry).then(() => {return true}).catch(() => {return false})
     // inrecing teh counter for global stats
     let counter = await db.collection('events').doc(EVENT).set({ participants: admin.firestore.FieldValue.increment(1) }, { merge: true }).then(() => {return true}).catch(() => {return false})
     // adding to teh gw2 account record
-    let eventEntry = await db.collection('userAccounts').doc(uuid).set({ events: events }, { merge: true }).then(() => {return true}).catch(() => {return false})
+    let eventEntry = await db.collection('userAccounts').doc(uuid).collection('events').doc(EVENT).set({ entered: entryDate, uuid: uuid }, { merge: true }).then(() => {return true}).catch(() => {return false})
 
     // check result and return to frontend
     if (entryResult && counter && eventEntry) {
@@ -109,8 +104,24 @@ const participateStatus = functions.https.onCall(
     let uuid = await getUUID(user)
     if (uuid.error) {return { error: "no API key set" }}
 
-    let gameAccount = await getGw2Account(uuid.success)
+    let events = await db.collection('userAccounts').doc(uuid.success).collection('events').get()
+    if (events.empty) {return {success: [] }}
 
-    return { success: gameAccount.success.events }
+    let result = []
+
+    events.forEach(doc => {
+      let event = doc.data()
+      result.push({
+        event: doc.id,
+        entered: event.entered,
+        uuid: event.uuid,
+        sent: event.sent || 0,
+        marked_received: event.marked_received || 0,
+        received: event.received || 0,
+        reported: event.reported || 0,
+      })
+    })
+
+    return { success: result }
   })
 module.exports = { participate, participateStatus }

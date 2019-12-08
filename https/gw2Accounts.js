@@ -4,7 +4,7 @@ THis manages everything account related sugh as adding api keys, nots, getting t
 const functions = require('firebase-functions');
 const rp = require('request-promise-native');
 const db = require('../config/db');
-const { getUUID, volunteerForNewGiftees, getGw2Account } = require('../utils/utils');
+const { getUUID, volunteerForNewGiftees } = require('../utils/utils');
 const { EVENT } = require("../config/constants");
 
 /**
@@ -49,15 +49,8 @@ const updateApiKey = functions.https.onCall(
   // get uuid
   let uuid = result.id
 
-    // Checks to see if an account already exists
-    let gameAccount = await getGw2Account(uuid)
-    let events = []
-    if(gameAccount.success){
-      events = gameAccount.success.events
-    }
-
   // add the data to userAccounts collection
-  await db.collection('userAccounts').doc(uuid).set({ uuid: uuid, apiKey:apiKey, lastValid: new Date().toISOString(), freeToPlay:freeToPlay, id: result.name, events: events }).catch(err => console.log(err))
+  await db.collection('userAccounts').doc(uuid).set({ uuid: uuid, apiKey:apiKey, lastValid: new Date().toISOString(), freeToPlay:freeToPlay, id: result.name }).catch(err => console.log(err))
 
   await db.collection('participants').doc(user).set({ uuid: uuid }, {merge: true}).catch(err => console.log(err))
 
