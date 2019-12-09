@@ -18,10 +18,11 @@ const participate = functions.https.onCall(
    * @param {object} data - details about the giftee
    * @param {string} data.user - user object or uid
    * @param {boolean} [data.participate] - true or undefined if user is entering, false if theya re withdrawing
+   * @param {string} [data.note] - Note for teh gifter
    * @param {object} [context] - This is used by firebase, no idea what it does, I think its added automatically
    * @returns {Result}
    */
-  async ({user, participate}, context) => {
+  async ({user, participate, note}, context) => {
     let uuid = await getUUID(user)
     if (uuid.error) {return { error: "no API key set" }}
     uuid = uuid.success
@@ -53,6 +54,7 @@ const participate = functions.https.onCall(
     let entry = {
       participant: uuid,
       entered: entryDate,
+      note: note,
 
       // this marks if they have sent their own gift
       sent_own: false,
