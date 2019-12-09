@@ -114,7 +114,7 @@ const participateStatus = functions.https.onCall(
     events.forEach(doc => {
       let event = doc.data()
       result.push({
-        event: doc.id,
+        year: doc.id,
         entered: event.entered,
         uuid: event.uuid,
         sent: event.sent || 0,
