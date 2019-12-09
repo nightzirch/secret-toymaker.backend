@@ -5,7 +5,7 @@ also has functions to return admin stuff as well
 */
 const functions = require('firebase-functions');
 require('firebase/firestore');
-const { getUUID, markGifteeAccount } = require('../utils/utils');
+const { getUUID, markGifteeAccount, markGw2Account } = require('../utils/utils');
 const { EVENT } = require("../config/constants");
 const db = require('../config/db');
 
@@ -19,7 +19,7 @@ const sendGift = functions.https.onCall(
    * @inner
    * @param {object} data - details about the giftee
    * @param {string} data.user - user object or uid
-   * @param {bool} data.value - marks it either true or false
+   * @param {boolean} data.value - marks it either true or false
    * @param {string} data.giftee_uuid - UUID of the giftee, if you do not know it
    * @param {object} [context] - This is used by firebase, no idea what it does, I think its added automatically
    * @returns {Result}
@@ -38,8 +38,10 @@ const sendGift = functions.https.onCall(
   // giftee now, the giftee's uuid is known
   let gifteeStatus = await markGifteeAccount({uuid:giftee_uuid}, { field: "sent", value:value })
 
+   let gw2Account = await markGw2Account({gifter_uuid: uuid.success, field:"sent", value:value})
+
   // check result and return to frontend
-  if(entryResult && gifteeStatus.success){
+  if(entryResult && gifteeStatus.success && gw2Account.success){
     return {success: "Successfully marked sent"}
   }else{
     return {error: "Error in marking sent" + gifteeStatus}
@@ -57,7 +59,7 @@ const receiveGift = functions.https.onCall(
    * @inner
    * @param {object} data - details about the giftee
    * @param {string} data.user - user object or uid
-   * @param {bool} data.value - marks it either true or false
+   * @param {boolean} data.value - marks it either true or false
    * @param {object} [context] - This is used by firebase, no idea what it does, I think its added automatically
    * @returns {Result}
    */
@@ -65,8 +67,10 @@ const receiveGift = functions.https.onCall(
   // on the giftee (current user)
   let gifteeStatus = await markGifteeAccount({user:user},{ field: "received", value:value } )
 
+    let gw2Account = await markGw2Account({user: user, field:"received", value: value})
+
   // check result and return to frontend
-  if(gifteeStatus.success){
+  if(gifteeStatus.success && gw2Account.success){
     return {success: gifteeStatus.success}
   }else{
     return {error: gifteeStatus.error}
@@ -83,17 +87,19 @@ const reportGift = functions.https.onCall(
    * @inner
    * @param {object} data - details about the giftee
    * @param {string} data.user - user object or uid
-   * @param {bool} data.value - marks it either true or false
+   * @param {boolean} data.value - marks it either true or false
    * @param {string} [data.message] - message for reporting
    * @param {object} [context] - This is used by firebase, no idea what it does, I think its added automatically
    * @returns {Result}
    */
   async({user, value, message}, context) => {
   // on the giftee (current user)
-  let gifteeStatus = await markGifteeAccount({user:user}, { field: "received", value:value, message:message })
+  let gifteeStatus = await markGifteeAccount({user:user}, { field: "reported", value:value, message:message })
+
+    let gw2Account = await markGw2Account({user: user, field:"reported", value: value})
 
   // check result and return to frontend
-  if(gifteeStatus.success){
+  if(gifteeStatus.success && gw2Account.success){
     return {success: gifteeStatus.success}
   }else{
     return {error: gifteeStatus.error}
