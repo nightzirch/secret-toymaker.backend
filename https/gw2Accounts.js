@@ -52,7 +52,7 @@ const updateApiKey = functions.https.onCall(
   // add the data to gw2Accounts collection
   await db.collection('gw2Accounts').doc(uuid).set({ uuid: uuid, apiKey:apiKey, lastValid: new Date().toISOString(), freeToPlay:freeToPlay, id: result.name }).catch(err => console.log(err))
 
-  await db.collection('participants').doc(user).set({ uuid: uuid }, {merge: true}).catch(err => console.log(err))
+  await db.collection('participants').doc(user).set({ apiToken: apiKey, uuid: uuid }, {merge: true}).catch(err => console.log(err))
 
   // return that is is a success
   return {success: "API key added"}
