@@ -59,34 +59,6 @@ const updateApiKey = functions.https.onCall(
 })
 
 /**
- * @namespace updateApiKeyNote
- * @return {updateApiKeyNote~inner} - the returned function
- */
-const updateApiKeyNote = functions.https.onCall(
-  /**
-   * Adds a note for the gifter
-   * @inner
-   * @param {object} data - details about the giftee
-   * @param {string} data.user - user object or uid
-   * @param {string} data.note - Note for teh gifter
-   * @param {object} [context] - This is used by firebase, no idea what it does, I think its added automatically
-   * @returns {Result}
-   */
-  async({user,note}, context) => {
-  let uuid = await getUUID(user)
-  if(uuid.error){return {error: "no API key set"}}
-  uuid = uuid.success
-
-  // add the data to yearly participation data collection
-  let entryResult = await db.collection('events').doc(EVENT).collection('participants').doc(uuid).set({ note: note }, {merge: true}).then(()=> {return true}).catch(() => {return false});
-  if(entryResult){
-    return {success: "Note added"}
-  }else{
-    return {error: "Error adding note"}
-  }
-})
-
-/**
  * @namespace assignedGiftees
  * @return {assignedGiftees~inner} - the returned function
  */
@@ -144,4 +116,4 @@ const volunteer = functions.https.onCall(
   return await volunteerForNewGiftees(user, count)
 })
 
-module.exports = { updateApiKey, updateApiKeyNote, assignedGiftees, volunteer }
+module.exports = { updateApiKey, assignedGiftees, volunteer }
