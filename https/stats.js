@@ -75,9 +75,22 @@ const getStats = functions.https.onCall(
    * @returns {Result}
    */
   async(context) => {
-  let statsRaw = await db.collection('events').doc(EVENT).get()
-  if (!statsRaw.exists) {return {error: "no statsr"}}
-  return {success: statsRaw.data()}
+  let statsDoc = await db.collection('events').doc(EVENT).get()
+  if (!statsDoc.exists) {return {error: "No stats"}}
+
+  const statsData = statsDoc.data();
+  const stats = {
+    participants: statsData.participants,
+    giftsSent: statsData.giftsSent,
+    donationsSent: statsData.donationsSent,
+    signupStart: statsData.signupStart.toDate().toISOString(),
+    signupEnd: statsData.signupEnd.toDate().toISOString(),
+    eventStart: statsData.eventStart.toDate().toISOString(),
+    eventEnd: statsData.eventEnd.toDate().toISOString(),
+    year: statsData.year
+  }
+
+  return {success: stats}
 })
 
 
