@@ -1,9 +1,11 @@
+const { getAlerts } = require("./https/alerts");
 const { stage } = require("./https/stage");
 const { participate, participateStatus } = require("./https/participate");
 const { assignedGiftees, updateApiKey, volunteer } = require("./https/gw2Accounts")
 const { sendGift, receiveGift, reportGift } = require("./https/gifts")
 const { getNotSent, getNotReceived, getReported, getStats} = require("./https/stats")
 
+exports.getAlerts = getAlerts;
 exports.sendGift = sendGift;
 exports.receiveGift = receiveGift;
 exports.reportGift = reportGift;
