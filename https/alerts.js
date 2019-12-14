@@ -1,6 +1,6 @@
 const functions = require("firebase-functions");
 require("firebase/firestore");
-const CollectionTypes = require("../utils/types/CollectionTypes")
+const CollectionTypes = require("../utils/types/CollectionTypes");
 
 const db = require("../config/db");
 
@@ -9,26 +9,27 @@ const db = require("../config/db");
  * @return {getAlerts~inner} - the returned function
  */
 const getAlerts = functions.https.onCall(
-   /**
+  /**
    * Gets all the alerts from the backend.
    * @inner
    * @returns {Alerts}
    */
-  
-   async() => {
-  
+
+  async () => {
     const alertsSnapshot = await db.collection(CollectionTypes.ALERTS).get();
-    if (alertsSnapshot.empty) {return {success: [] }}
+    if (alertsSnapshot.empty) {
+      return { success: [] };
+    }
 
     const alerts = [];
 
     alertsSnapshot.forEach(alertDoc => {
       const alert = alertDoc.data();
-      alerts.push(Object.assign(alert, {id: alertDoc.id}));
-    })
+      alerts.push(Object.assign(alert, { id: alertDoc.id }));
+    });
 
-    return {success: alerts}
+    return { success: alerts };
   }
 );
 
-module.exports = { getAlerts }
+module.exports = { getAlerts };

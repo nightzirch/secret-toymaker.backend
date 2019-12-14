@@ -1,6 +1,7 @@
-const functions = require('firebase-functions');
-const { setAllRandomParticipant} = require('../utils/utils');
-
+const functions = require("firebase-functions");
+const { setAllRandomParticipant } = require("../utils/utils");
+const { EVENT } = require("../config/constants");
+const CollectionTypes = require("../utils/types/CollectionTypes");
 
 // TODO: set this up to run on a schedule
 /*
@@ -18,7 +19,10 @@ functions.pubsub.schedule('5 * * * *').onRun((context) => {
 
  */
 
-
-module.exports = functions.https.onCall(async(blank, context) => {
-  await setAllRandomParticipant()
+module.exports = functions.https.onCall(async (blank, context) => {
+  await setAllRandomParticipant();
+  await db
+    .collection(CollectionTypes.EVENTS)
+    .doc(EVENT)
+    .set({ isMatchingDone: true }, { merge: true });
 });
