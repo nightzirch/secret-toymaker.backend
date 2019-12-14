@@ -17,16 +17,16 @@ const stage = functions.https.onCall(async (data, context) => {
 
   const { isMatchingDone, year } = event;
   const signupStart = event.signupStart.toDate();
-  const matchingStart = event.matchingStart.toDate();
+  const eventStart = event.eventStart.toDate();
   const eventEnd = event.eventEnd.toDate();
   const now = new Date();
 
-  if (signupStart < now && now < matchingStart) {
-    currentStage = new Stage(StageTypes.SIGNUP, year, signupStart, matchingStart);
-  } else if (matchingStart < now && now < eventEnd && !isMatchingDone) {
+  if (signupStart < now && now < eventStart) {
+    currentStage = new Stage(StageTypes.SIGNUP, year, signupStart, eventStart);
+  } else if (eventStart < now && now < eventEnd && !isMatchingDone) {
     currentStage = new Stage(StageTypes.MATCHING, year);
-  } else if (matchingStart < now && now < eventEnd && isMatchingDone) {
-    currentStage = new Stage(StageTypes.GIFTING, year, matchingStart, eventEnd);
+  } else if (eventStart < now && now < eventEnd && isMatchingDone) {
+    currentStage = new Stage(StageTypes.GIFTING, year, eventStart, eventEnd);
   }
   return currentStage;
 });

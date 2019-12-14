@@ -79,7 +79,13 @@ const updateApiKey = functions.https.onCall(
       .collection(CollectionTypes.TOYMAKERS)
       .doc(user)
       .set(
-        { apiToken: apiToken, gameAccountUUID: gameAccountUUID },
+        {
+          apiToken: apiToken,
+          gameAccountUUID: gameAccountUUID,
+          gameAccount: db
+            .collection(CollectionTypes.GAME_ACCOUNTS)
+            .doc(gameAccountUUID)
+        },
         { merge: true }
       )
       .catch(err => console.log(err));
@@ -123,12 +129,13 @@ const assignedGiftees = functions.https.onCall(
     let gifteeArray = [];
     giftee.forEach(doc => {
       let gifteeData = doc.data();
+
       gifteeArray.push({
         name: gifteeData.name,
-        notes: gifteeData.note,
+        notes: gifteeData.notes,
         // used to identify the user
         gameAccountUUID: gifteeData.participant,
-        // these note the state
+        // these notes the state
         sent: gifteeData.sent,
         received: gifteeData.received,
         reported: gifteeData.reported

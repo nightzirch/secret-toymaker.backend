@@ -100,7 +100,6 @@ const getStats = functions.https.onCall(
       giftsSent: statsData.giftsSent,
       donationsSent: statsData.donationsSent,
       signupStart: statsData.signupStart.toDate().toISOString(),
-      signupEnd: statsData.signupEnd.toDate().toISOString(),
       eventStart: statsData.eventStart.toDate().toISOString(),
       eventEnd: statsData.eventEnd.toDate().toISOString(),
       year: statsData.year

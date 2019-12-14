@@ -56,12 +56,12 @@ const getGameAccountUUID = async user => {
 
   // get the user to get teh gameAccountUUID
   let userDetails = userAccount.data();
-  if (!userDetails.gw2AccountUUID) {
+  if (!userDetails.gameAccountUUID) {
     return { error: "No API Key set" };
   }
 
-  let gw2AccountUUID = userDetails.gw2AccountUUID;
-  return { success: gw2AccountUUID };
+  let gameAccountUUID = userDetails.gameAccountUUID;
+  return { success: gameAccountUUID };
 };
 
 /**

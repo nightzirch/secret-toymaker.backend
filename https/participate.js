@@ -20,11 +20,11 @@ const participate = functions.https.onCall(
    * @param {object} data - details about the giftee
    * @param {string} data.user - user object or uid
    * @param {boolean} [data.participate] - true or undefined if user is entering, false if theya re withdrawing
-   * @param {string} [data.note] - Note for teh gifter
+   * @param {string} [data.notes] - Note for teh gifter
    * @param {object} [context] - This is used by firebase, no idea what it does, I think its added automatically
    * @returns {Result}
    */
-  async ({ user, participate, note }, context) => {
+  async ({ user, participate, notes }, context) => {
     let gameAccountUUID = await getGameAccountUUID(user);
     if (gameAccountUUID.error) {
       return { error: "no API key set" };
@@ -97,27 +97,13 @@ const participate = functions.https.onCall(
     let entryDate = new Date().toISOString();
     // use gameAccountUUID to set the game account for entry
 
-    let entry = {
-      participant: gameAccountUUID,
-      entered: entryDate,
-      note: note,
-
-      // this marks if they have sent their own gift
-      sent_own: false,
-
-      // these manage the status of this persons gift
-      sent: false,
-      received: false,
-      reported: false,
-
-      // these manage who is gifting to them and who they are gifting to
-      giftee: null,
-      gifter: null,
-
-      // add this here, will save a call later
-      name: gameAccount.success.id,
-      // mark if the account is F2P
-      freeToPlay: gameAccount.success.freeToPlay
+    const participation = {
+      gameAccountUUID,
+      entryDate,
+      notes,
+      id: gameAccount.success.id,
+      isFreeToPlay: gameAccount.success.freeToPlay,
+      year: EVENT
     };
 
     // adding the user to participants so tehy can get a match
@@ -126,13 +112,14 @@ const participate = functions.https.onCall(
       .doc(EVENT)
       .collection(CollectionTypes.EVENTS__PARTICIPANTS)
       .doc(gameAccountUUID)
-      .set(entry)
+      .set(participation)
       .then(() => {
         return true;
       })
       .catch(() => {
         return false;
       });
+
     // inrecing teh counter for global stats
     let counter = await db
       .collection(CollectionTypes.EVENTS)
@@ -147,16 +134,21 @@ const participate = functions.https.onCall(
       .catch(() => {
         return false;
       });
-    // adding to teh gw2 account record
+
+    // adding to the gameAccount record
     let eventEntry = await db
       .collection(CollectionTypes.GAME_ACCOUNTS)
       .doc(gameAccountUUID)
       .collection(CollectionTypes.GAME_ACCOUNTS__EVENTS)
       .doc(EVENT)
-      .set(
-        { entered: entryDate, gameAccountUUID: gameAccountUUID },
-        { merge: true }
-      )
+      .set({
+        event: db.collection(CollectionTypes.EVENTS).doc(EVENT),
+        participation: db
+          .collection(CollectionTypes.EVENTS)
+          .doc(EVENT)
+          .collection(CollectionTypes.EVENTS__PARTICIPANTS)
+          .doc(gameAccountUUID)
+      })
       .then(() => {
         return true;
       })
@@ -201,20 +193,29 @@ const participateStatus = functions.https.onCall(
       return { success: [] };
     }
 
-    let result = [];
+    let participationRefs = [];
 
     events.forEach(doc => {
-      let event = doc.data();
-      result.push({
-        year: doc.id,
-        entered: event.entered,
-        gameAccountUUID: event.gameAccountUUID,
-        sent: event.sent || 0,
-        marked_received: event.marked_received || 0,
-        received: event.received || 0,
-        reported: event.reported || 0
-      });
+      let participationData = doc.data();
+      participationRefs.push(participationData.participation.get());
     });
+
+    let result = await Promise.all(
+      participationRefs.map(async docPromise => {
+        const doc = await docPromise;
+        let participation = doc.data();
+        const { entryDate, gameAccountUUID, notes, year} = participation;
+
+        return {
+          year,
+          gameAccountUUID,
+          entryDate,
+          notes
+        };
+      })
+    );
+
+    result = result.filter(e => e);
 
     return { success: result };
   }
