@@ -35,34 +35,34 @@ const getCurrentEvent = async () => {
 }
 
 /**
- * This takes a user object or uid and returns teh uuid
+ * This takes a user object or uid and returns the gameAccountUUID
  * @param {string} user - user object or uid
  * @returns {Result}
  */
-const getUUID = async(user) =>{
+const getGameAccountUUID = async(user) =>{
   // this is the uid, but cna accept the user object as well
   if(user.uid){user = user.uid}
 
   let userAccount = await db.collection(CollectionTypes.TOYMAKERS).doc(user).get()
   if (!userAccount.exists) {return {error: "No such user"}}
 
-  // get the user to get teh uuid
+  // get the user to get teh gameAccountUUID
   let userDetails = userAccount.data()
-  if(!userDetails.uuid){return {error: "No API Key set"}}
+  if(!userDetails.gw2AccountUUID){return {error: "No API Key set"}}
 
-  let uuid = userDetails.uuid
-  return {success: uuid}
+  let gw2AccountUUID = userDetails.gw2AccountUUID
+  return {success: gw2AccountUUID}
 }
 
 /**
  * This takes a UUID and returns the Gw2 account details
- * @param {string} uuid - Takes uuid and returns the gw2 account
+ * @param {string} gameAccountUUID - Takes gameAccountUUID and returns the gw2 account
  * @returns {Result}
  */
-const getGw2Account = async (uuid) =>{
-  let userAccount = await db.collection(CollectionTypes.GW2_ACCOUNTS).doc(uuid).get()
+const getGw2Account = async (gameAccountUUID) =>{
+  let userAccount = await db.collection(CollectionTypes.GAME_ACCOUNTS).doc(gameAccountUUID).get()
   if (!userAccount.exists) {return {error: "No such giftee"}}
-  // get the user to get teh uuid
+  // get the user to get teh gameAccountUUID
   return {success: userAccount.data()}
 }
 
@@ -86,19 +86,19 @@ const setAllRandomParticipant = async () => {
   if(allUsersArray.length === 0){return {error: "No valid users"}}
 
   for(let i=0;i<allUsersArray.length;i++){
-    let gifter_uuid = allUsersArray[i].participant
+    let gifterGameAccountUUID = allUsersArray[i].participant
 
-    let tempArray = allUsersArray.filter(user => user.gifter === null && user.participant !== gifter_uuid)
+    let tempArray = allUsersArray.filter(user => user.gifter === null && user.participant !== gifterGameAccountUUID)
     let randomInt = Math.floor(Math.random() * tempArray.length)
 
     let giftee_uuid = tempArray[randomInt].participant
 
-    tmp[gifter_uuid].giftee = giftee_uuid
-    tmp[giftee_uuid].gifter = gifter_uuid
+    tmp[gifterGameAccountUUID].giftee = giftee_uuid
+    tmp[giftee_uuid].gifter = gifterGameAccountUUID
 
     // updates allUsersArray to exclude this item
     let foundIndex = allUsersArray.findIndex(x => x.participant === giftee_uuid);
-    allUsersArray[foundIndex].gifter = gifter_uuid;
+    allUsersArray[foundIndex].gifter = gifterGameAccountUUID;
   }
 
   // Batch it together
@@ -146,12 +146,12 @@ async function getGeneralQueries(field, comparison, value, skip, limit){
  * @returns {Result}
  */
 const volunteerForNewGiftees = async (user, count) => {
-  let uuid = await getUUID(user)
-  if(uuid.error){return {error: uuid.error}}
-  uuid = uuid.success
+  let gameAccountUUID = await getGameAccountUUID(user)
+  if(gameAccountUUID.error){return {error: gameAccountUUID.error}}
+  gameAccountUUID = gameAccountUUID.success
 
   // check to see if said user has sent their initial gift
-  let sent = await db.collection(CollectionTypes.EVENTS).doc(EVENT).collection(CollectionTypes.EVENT__PARTICIPANTS).doc(uuid).get()
+  let sent = await db.collection(CollectionTypes.EVENTS).doc(EVENT).collection(CollectionTypes.EVENT__PARTICIPANTS).doc(gameAccountUUID).get()
   if (sent.empty) {return {error: "has not sent initial gift"}}
 
   // normalise the quantities, just in case its spoofed
@@ -188,7 +188,7 @@ const volunteerForNewGiftees = async (user, count) => {
     let reference = db.collection(CollectionTypes.EVENTS).doc(EVENT).collection(CollectionTypes.EVENT__PARTICIPANTS).doc(resultsArray[i].participant)
 
     // this onlky needs a monor change to setup teh third round of gifting
-    let changes = {gifter: uuid, second: true}
+    let changes = {gifter: gameAccountUUID, second: true}
     batch.update(reference, changes);
   }
 
@@ -202,7 +202,7 @@ const volunteerForNewGiftees = async (user, count) => {
 /**
  * This marks the giftee's account with the appropriate flags, only if its not already set.
  * @param {object} giftee - details about the giftee
- * @param {string} [giftee.uuid] - UUID of the giftee, if you do not know it
+ * @param {string} [giftee.gameAccountUUID] - UUID of the giftee, if you do not know it
  * @param {string} [giftee.user] - If the UUID is unknown this is the giftee's uid or user object
  * @param {object} update - details about the giftee
  * @param {string} update.field - What part to mark: sent, received, reported
@@ -210,15 +210,15 @@ const volunteerForNewGiftees = async (user, count) => {
  * @param {boolean} [update.value] - If reporting allow a message
  * @returns {Result}
  */
-async function markGifteeAccount({uuid, user}, {field, message, value}){
-  // if someone is marking the gift sent they know the uuid of the giftee
-  if(!uuid){
+async function markGifteeAccount({gameAccountUUID, user}, {field, message, value}){
+  // if someone is marking the gift sent they know the gameAccountUUID of the giftee
+  if(!gameAccountUUID){
     if(!user){return {error: "no uuid or user requested"}}
 
-    // if the uuid is undefined then take the user, search for teh account related and return that uuid
-    let tmp_uuid = await getUUID(user)
+    // if the gameAccountUUID is undefined then take the user, search for teh account related and return that gameAccountUUID
+    let tmp_uuid = await getGameAccountUUID(user)
     if(tmp_uuid.error){return {error: "no API key set"}}
-    uuid = tmp_uuid.success
+    gameAccountUUID = tmp_uuid.success
   }
 
   // checking teh field
@@ -226,7 +226,7 @@ async function markGifteeAccount({uuid, user}, {field, message, value}){
   if(field !== "sent" && field !== "received" && field !== "reported"){return {error: "field is not one of the defined types"}}
 
   if(typeof value === "undefined"){value=true}
-  let currentValueRaw = await db.collection(CollectionTypes.EVENTS).doc(EVENT).collection(CollectionTypes.EVENT__PARTICIPANTS).doc(uuid).get()
+  let currentValueRaw = await db.collection(CollectionTypes.EVENTS).doc(EVENT).collection(CollectionTypes.EVENT__PARTICIPANTS).doc(gameAccountUUID).get()
   if (!currentValueRaw.exists) {return {error: "no such user"}}
   let currentValue = currentValueRaw.data()
   if(value === currentValue[field]){return {success: "Value already set"}}
@@ -235,7 +235,7 @@ async function markGifteeAccount({uuid, user}, {field, message, value}){
   tmp[field] = value
   if(message){tmp.report = message}
 
-  let entryResult = await db.collection(CollectionTypes.EVENTS).doc(EVENT).collection(CollectionTypes.EVENT__PARTICIPANTS).doc(uuid).set(tmp, {merge: true}).then(()=> {return true}).catch(() => {return false});
+  let entryResult = await db.collection(CollectionTypes.EVENTS).doc(EVENT).collection(CollectionTypes.EVENT__PARTICIPANTS).doc(gameAccountUUID).set(tmp, {merge: true}).then(()=> {return true}).catch(() => {return false});
 
   let tmp2 = {}
   tmp2[field] = admin.firestore.FieldValue.increment(value?1:-1)
@@ -252,26 +252,26 @@ async function markGifteeAccount({uuid, user}, {field, message, value}){
 /**
  * Records stats on a per user basis
  * @param {object} details - details about the giftee
- * @param {string} [details.gifter_uuid] - UUID of the giftee, if you do not know it
+ * @param {string} [details.gifterGameAccountUUID] - UUID of the giftee, if you do not know it
  * @param {string} [details.user] - If the UUID is unknown this is the giftee's uid or user object
  * @param {string} details.field - What part to mark: sent, received, reported
  * @param {boolean} details.value - If reporting allow a message
  * @returns {Result}
  */
-async function markGw2Account({gifter_uuid, user, field, value}){
+async function markGw2Account({gifterGameAccountUUID, user, field, value}){
   // gifter owns teh record
 
-  if(!gifter_uuid){
-    if(!user){return {error: "no gifter_uuid or user requested"}}
+  if(!gifterGameAccountUUID){
+    if(!user){return {error: "no gifterGameAccountUUID or user requested"}}
 
-    let uuid = getUUID(user)
-    let entryResult = await db.collection(CollectionTypes.EVENTS).doc(EVENT).collection(CollectionTypes.EVENT__PARTICIPANTS).doc(uuid.success).get().data()
-    gifter_uuid = entryResult.gifter
+    let gameAccountUUID = getGameAccountUUID(user)
+    let entryResult = await db.collection(CollectionTypes.EVENTS).doc(EVENT).collection(CollectionTypes.EVENT__PARTICIPANTS).doc(gameAccountUUID.success).get().data()
+    gifterGameAccountUUID = entryResult.gifter
 
     if(field === "received"){
       let tmp0 = {}
       tmp0[field] = admin.firestore.FieldValue.increment(value?1:-1)
-      await db.collection(CollectionTypes.GW2_ACCOUNTS).doc(uuid.success).collection(CollectionTypes.EVENTS).doc(EVENT).set(tmp0, { merge: true }).then(() => {return true}).catch(() => {return false})
+      await db.collection(CollectionTypes.GAME_ACCOUNTS).doc(gameAccountUUID.success).collection(CollectionTypes.EVENTS).doc(EVENT).set(tmp0, { merge: true }).then(() => {return true}).catch(() => {return false})
 
       // set teh field for teh gifter account
       field = "marked_received"
@@ -281,7 +281,7 @@ async function markGw2Account({gifter_uuid, user, field, value}){
   let tmp = {}
   tmp[field] = admin.firestore.FieldValue.increment(value?1:-1)
 
-  let eventEntry = await db.collection(CollectionTypes.GW2_ACCOUNTS).doc(gifter_uuid).collection(CollectionTypes.EVENTS).doc(EVENT).set(tmp, { merge: true }).then(() => {return true}).catch(() => {return false})
+  let eventEntry = await db.collection(CollectionTypes.GAME_ACCOUNTS).doc(gifterGameAccountUUID).collection(CollectionTypes.EVENTS).doc(EVENT).set(tmp, { merge: true }).then(() => {return true}).catch(() => {return false})
   // check result and return
 
   if(eventEntry){
@@ -291,4 +291,4 @@ async function markGw2Account({gifter_uuid, user, field, value}){
   }
 }
 
-module.exports = { getCurrentEvent, getUUID, setAllRandomParticipant, getGw2Account, getGeneralQueries, volunteerForNewGiftees, markGifteeAccount, markGw2Account};
+module.exports = { getCurrentEvent, getGameAccountUUID, setAllRandomParticipant, getGw2Account, getGeneralQueries, volunteerForNewGiftees, markGifteeAccount, markGw2Account};

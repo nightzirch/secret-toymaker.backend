@@ -6,7 +6,7 @@ THis manages everything account related sugh as adding api keys, nots, getting t
 const functions = require('firebase-functions');
 const rp = require('request-promise-native');
 const db = require('../config/db');
-const { getUUID, volunteerForNewGiftees } = require('../utils/utils');
+const { getGameAccountUUID, volunteerForNewGiftees } = require('../utils/utils');
 const { EVENT } = require("../config/constants");
 
 /**
@@ -19,15 +19,15 @@ const updateApiKey = functions.https.onCall(
    * @inner
    * @param {object} data - details about the giftee
    * @param {string} data.user - user object or uid
-   * @param {string} data.apiKey - api key
+   * @param {string} data.apiToken - api key
    * @param {object} [context] - This is used by firebase, no idea what it does, I think its added automatically
    * @returns {Result}
    */
-  async({user,apiKey}, context) => {
+  async({user,apiToken}, context) => {
   // may tern the request into a genralised function if we get the mail endpoint, but for now it is sufficent
 
   // first check key
-  let url = "https://api.guildwars2.com/v2/account?v=2019-11-18T00:00:00Z&access_token="+apiKey
+  let url = "https://api.guildwars2.com/v2/account?v=2019-11-18T00:00:00Z&access_token="+apiToken
   let accountData = await rp({url:url,resolveWithFullResponse:true}).then((response) => {return { headers: response.headers, body: response.body }}).catch((error) => {return { error: error }})
 
   if(accountData.error){
@@ -48,13 +48,13 @@ const updateApiKey = functions.https.onCall(
   // figure pout if the person is F2P
   let freeToPlay = result.access.indexOf("PlayForFree ") !== -1
 
-  // get uuid
-  let uuid = result.id
+  // get gameAccountUUID
+  let gameAccountUUID = result.id
 
   // add the data to gw2Accounts collection
-  await db.collection(CollectionTypes.GW2_ACCOUNTS).doc(uuid).set({ uuid: uuid, apiKey:apiKey, lastValid: new Date().toISOString(), freeToPlay:freeToPlay, id: result.name }).catch(err => console.log(err))
+  await db.collection(CollectionTypes.GAME_ACCOUNTS).doc(gameAccountUUID).set({ gameAccountUUID, apiToken, lastValid: new Date().toISOString(), freeToPlay, id: result.name }).catch(err => console.log(err))
 
-  await db.collection(CollectionTypes.TOYMAKERS).doc(user).set({ apiToken: apiKey, uuid: uuid }, {merge: true}).catch(err => console.log(err))
+  await db.collection(CollectionTypes.TOYMAKERS).doc(user).set({ apiToken: apiToken, gameAccountUUID: gameAccountUUID }, {merge: true}).catch(err => console.log(err))
 
   // return that is is a success
   return {success: "API key added"}
@@ -74,11 +74,11 @@ const assignedGiftees = functions.https.onCall(
    * @returns {Result}
    */
   async ({user}, context) => {
-  let gifter_uuid = await getUUID(user)
-  if(gifter_uuid.error){return {error: "no API key set"}}
-  gifter_uuid = gifter_uuid.success
+  let gifterGameAccountUUID = await getGameAccountUUID(user)
+  if(gifterGameAccountUUID.error){return {error: "no API key set"}}
+  gifterGameAccountUUID = gifterGameAccountUUID.success
 
-  let giftee = await db.collection(CollectionTypes.EVENTS).doc(EVENT).collection(CollectionTypes.EVENTS__PARTICIPANTS).where('gifter', '==', gifter_uuid).get()
+  let giftee = await db.collection(CollectionTypes.EVENTS).doc(EVENT).collection(CollectionTypes.EVENTS__PARTICIPANTS).where('gifter', '==', gifterGameAccountUUID).get()
   if (giftee.empty) {return {error: "No valid users"}}
 
   // array in case the user is sending gifts to multiple folks
@@ -86,10 +86,10 @@ const assignedGiftees = functions.https.onCall(
   giftee.forEach(doc => {
     let gifteeData = doc.data()
     gifteeArray.push({
-      name:gifteeData.name,
-      note:gifteeData.note,
+      name: gifteeData.name,
+      notes: gifteeData.note,
       // used to identify the user
-      uuid:gifteeData.participant,
+      gameAccountUUID: gifteeData.participant,
       // these note the state
       sent: gifteeData.sent,
       received: gifteeData.received,

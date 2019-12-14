@@ -3,7 +3,7 @@ module.exports = {
   EVENTS: "events",
   EVENTS__PARTICIPANTS: "participants",
   GIFTS: "gifts",
-  GW2_ACCOUNTS: "gw2Accounts",
-  GW2_ACCOUNTS__EVENTS: "events",
+  GAME_ACCOUNTS: "gameAccounts",
+  GAME_ACCOUNTS__EVENTS: "events",
   TOYMAKERS: "toymakers"
 }
