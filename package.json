@@ -4,11 +4,34 @@
   "description": "Secret Toymaker is a community-driven secret santa event for the Guild Wars 2 community",
   "author": "Christian Grimsgaard",
   "contributors": [
-    { "name": "Christian Grimsgaard", "email": "chrisgrimsgaard@gmail.com", "year": [ 2014, 2015, 2016, 2017, 2018, 2019 ] },
-    { "name": "Brendan Golden", "email": "brendan@brendán.ie", "year": [ 2014, 2019 ] }
+    {
+      "name": "Christian Grimsgaard",
+      "email": "chrisgrimsgaard@gmail.com",
+      "year": [
+        2014,
+        2015,
+        2016,
+        2017,
+        2018,
+        2019
+      ]
+    },
+    {
+      "name": "Brendan Golden",
+      "email": "brendan@brendán.ie",
+      "year": [
+        2014,
+        2019
+      ]
+    }
   ],
-  "repository": { "type": "git", "url": "https://github.com/nightzirch/secret-toymaker.backend.git" },
-  "engines": { "node": "10" },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nightzirch/secret-toymaker.backend.git"
+  },
+  "engines": {
+    "node": "10"
+  },
   "scripts": {
     "lint": "eslint .",
     "serve": "firebase serve --only functions",

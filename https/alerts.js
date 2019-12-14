@@ -1,5 +1,6 @@
 const functions = require("firebase-functions");
 require("firebase/firestore");
+const CollectionTypes = require("../utils/types/CollectionTypes")
 
 const db = require("../config/db");
 
@@ -16,7 +17,7 @@ const getAlerts = functions.https.onCall(
   
    async() => {
   
-    const alertsSnapshot = await db.collection('alerts').get();
+    const alertsSnapshot = await db.collection(CollectionTypes.ALERTS).get();
     if (alertsSnapshot.empty) {return {success: [] }}
 
     const alerts = [];

@@ -1,3 +1,5 @@
+const CollectionTypes = require("../utils/types/CollectionTypes")
+
 /*
 This manages sending, recieving and reporting gifts.
 
@@ -33,7 +35,7 @@ const sendGift = functions.https.onCall(
   // gifter first
   let uuid = await getUUID(user)
   if(uuid.error){return {error: "no API key set"}}
-  let entryResult = await db.collection('events').doc(EVENT).collection('participants').doc(uuid.success).set({ sent_own: value }, {merge: true}).then(()=> {return true}).catch(() => {return false});
+  let entryResult = await db.collection(CollectionTypes.EVENTS).doc(EVENT).collection(CollectionTypes.EVENTS__PARTICIPANTS).doc(uuid.success).set({ sent_own: value }, {merge: true}).then(()=> {return true}).catch(() => {return false});
 
   // giftee now, the giftee's uuid is known
   let gifteeStatus = await markGifteeAccount({uuid:giftee_uuid}, { field: "sent", value:value })

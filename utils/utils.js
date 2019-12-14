@@ -1,5 +1,6 @@
 require('firebase/firestore');
 const admin = require('firebase-admin');
+const CollectionTypes = require("../utils/types/CollectionTypes")
 
 const db = require('../config/db');
 const { EVENT } = require("../config/constants");
@@ -13,7 +14,7 @@ const { EVENT } = require("../config/constants");
 
 
 const getCurrentEvent = async () => {
-  const events = await db.collection('events').get();
+  const events = await db.collection(CollectionTypes.EVENTS).get();
   if (events.empty) {return {error: "No events currently active"}}
   let currentEvent;
 
@@ -42,7 +43,7 @@ const getUUID = async(user) =>{
   // this is the uid, but cna accept the user object as well
   if(user.uid){user = user.uid}
 
-  let userAccount = await db.collection('participants').doc(user).get()
+  let userAccount = await db.collection(CollectionTypes.TOYMAKERS).doc(user).get()
   if (!userAccount.exists) {return {error: "No such user"}}
 
   // get the user to get teh uuid
@@ -59,7 +60,7 @@ const getUUID = async(user) =>{
  * @returns {Result}
  */
 const getGw2Account = async (uuid) =>{
-  let userAccount = await db.collection('gw2Accounts').doc(uuid).get()
+  let userAccount = await db.collection(CollectionTypes.GW2_ACCOUNTS).doc(uuid).get()
   if (!userAccount.exists) {return {error: "No such giftee"}}
   // get the user to get teh uuid
   return {success: userAccount.data()}
@@ -71,7 +72,7 @@ const getGw2Account = async (uuid) =>{
  */
 const setAllRandomParticipant = async () => {
   // this will run once manually
-  let allUsers = await db.collection('events').doc(EVENT).collection('participants').where('freeToPlay', '==', false).get()
+  let allUsers = await db.collection(CollectionTypes.EVENTS).doc(EVENT).collection(CollectionTypes.EVENTS__PARTICIPANTS).where('freeToPlay', '==', false).get()
   if (allUsers.empty) {return {error: "No valid users"}}
 
   let tmp = {}
@@ -103,7 +104,7 @@ const setAllRandomParticipant = async () => {
   // Batch it together
   let batch = db.batch();
   Object.keys(tmp).forEach(key => {
-      let reference = db.collection('events').doc(EVENT).collection('participants').doc(key)
+      let reference = db.collection(CollectionTypes.EVENTS).doc(EVENT).collection(CollectionTypes.EVENTS__PARTICIPANTS).doc(key)
       batch.update(reference, {gifter: tmp[key].gifter, giftee: tmp[key].giftee});
     })
   await batch.commit()
@@ -125,7 +126,7 @@ async function getGeneralQueries(field, comparison, value, skip, limit){
   //if(typeof limit === "undefined"){limit = 100}
 
   let result = []
-  let results = await db.collection('events').doc(EVENT).collection('participants').where(field, comparison, value)
+  let results = await db.collection(CollectionTypes.EVENTS).doc(EVENT).collection(CollectionTypes.EVENTS__PARTICIPANTS).where(field, comparison, value)
   //.startAt(skip).limit(limit)
   .get()
 
@@ -150,7 +151,7 @@ const volunteerForNewGiftees = async (user, count) => {
   uuid = uuid.success
 
   // check to see if said user has sent their initial gift
-  let sent = await db.collection('events').doc(EVENT).collection('participants').doc(uuid).get()
+  let sent = await db.collection(CollectionTypes.EVENTS).doc(EVENT).collection(CollectionTypes.EVENT__PARTICIPANTS).doc(uuid).get()
   if (sent.empty) {return {error: "has not sent initial gift"}}
 
   // normalise the quantities, just in case its spoofed
@@ -159,7 +160,7 @@ const volunteerForNewGiftees = async (user, count) => {
   if(count < 1){count = 1}
 
   // now get list of peoople who havent gotten a goft
-  let noGift = await db.collection('events').doc(EVENT).collection('participants').where("received", "==", false).get()
+  let noGift = await db.collection(CollectionTypes.EVENTS).doc(EVENT).collection(CollectionTypes.EVENT__PARTICIPANTS).where("received", "==", false).get()
   if (noGift.empty) {return {error: "has not sent initial gift"}}
 
   // now loop through
@@ -184,7 +185,7 @@ const volunteerForNewGiftees = async (user, count) => {
     // only need to do up to the specified quantity
     if (i >= count) break
     // update said user accounts with new gifter
-    let reference = db.collection('events').doc(EVENT).collection('participants').doc(resultsArray[i].participant)
+    let reference = db.collection(CollectionTypes.EVENTS).doc(EVENT).collection(CollectionTypes.EVENT__PARTICIPANTS).doc(resultsArray[i].participant)
 
     // this onlky needs a monor change to setup teh third round of gifting
     let changes = {gifter: uuid, second: true}
@@ -225,7 +226,7 @@ async function markGifteeAccount({uuid, user}, {field, message, value}){
   if(field !== "sent" && field !== "received" && field !== "reported"){return {error: "field is not one of the defined types"}}
 
   if(typeof value === "undefined"){value=true}
-  let currentValueRaw = await db.collection('events').doc(EVENT).collection('participants').doc(uuid).get()
+  let currentValueRaw = await db.collection(CollectionTypes.EVENTS).doc(EVENT).collection(CollectionTypes.EVENT__PARTICIPANTS).doc(uuid).get()
   if (!currentValueRaw.exists) {return {error: "no such user"}}
   let currentValue = currentValueRaw.data()
   if(value === currentValue[field]){return {success: "Value already set"}}
@@ -234,11 +235,11 @@ async function markGifteeAccount({uuid, user}, {field, message, value}){
   tmp[field] = value
   if(message){tmp.report = message}
 
-  let entryResult = await db.collection('events').doc(EVENT).collection('participants').doc(uuid).set(tmp, {merge: true}).then(()=> {return true}).catch(() => {return false});
+  let entryResult = await db.collection(CollectionTypes.EVENTS).doc(EVENT).collection(CollectionTypes.EVENT__PARTICIPANTS).doc(uuid).set(tmp, {merge: true}).then(()=> {return true}).catch(() => {return false});
 
   let tmp2 = {}
   tmp2[field] = admin.firestore.FieldValue.increment(value?1:-1)
-  let entryResult2 = await db.collection('events').doc(EVENT).set(tmp2, {merge: true}).then(()=> {return true}).catch(() => {return false});
+  let entryResult2 = await db.collection(CollectionTypes.EVENTS).doc(EVENT).set(tmp2, {merge: true}).then(()=> {return true}).catch(() => {return false});
 
   // check result and return to frontend
   if(entryResult && entryResult2){
@@ -264,13 +265,13 @@ async function markGw2Account({gifter_uuid, user, field, value}){
     if(!user){return {error: "no gifter_uuid or user requested"}}
 
     let uuid = getUUID(user)
-    let entryResult = await db.collection('events').doc(EVENT).collection('participants').doc(uuid.success).get().data()
+    let entryResult = await db.collection(CollectionTypes.EVENTS).doc(EVENT).collection(CollectionTypes.EVENT__PARTICIPANTS).doc(uuid.success).get().data()
     gifter_uuid = entryResult.gifter
 
     if(field === "received"){
       let tmp0 = {}
       tmp0[field] = admin.firestore.FieldValue.increment(value?1:-1)
-      await db.collection('gw2Accounts').doc(uuid.success).collection('events').doc(EVENT).set(tmp0, { merge: true }).then(() => {return true}).catch(() => {return false})
+      await db.collection(CollectionTypes.GW2_ACCOUNTS).doc(uuid.success).collection(CollectionTypes.EVENTS).doc(EVENT).set(tmp0, { merge: true }).then(() => {return true}).catch(() => {return false})
 
       // set teh field for teh gifter account
       field = "marked_received"
@@ -280,7 +281,7 @@ async function markGw2Account({gifter_uuid, user, field, value}){
   let tmp = {}
   tmp[field] = admin.firestore.FieldValue.increment(value?1:-1)
 
-  let eventEntry = await db.collection('gw2Accounts').doc(gifter_uuid).collection('events').doc(EVENT).set(tmp, { merge: true }).then(() => {return true}).catch(() => {return false})
+  let eventEntry = await db.collection(CollectionTypes.GW2_ACCOUNTS).doc(gifter_uuid).collection(CollectionTypes.EVENTS).doc(EVENT).set(tmp, { merge: true }).then(() => {return true}).catch(() => {return false})
   // check result and return
 
   if(eventEntry){

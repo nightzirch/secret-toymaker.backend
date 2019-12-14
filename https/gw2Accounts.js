@@ -1,3 +1,5 @@
+const CollectionTypes = require("../utils/types/CollectionTypes")
+
 /*
 THis manages everything account related sugh as adding api keys, nots, getting the assigned giftees and volunteering for mroe
 */
@@ -50,9 +52,9 @@ const updateApiKey = functions.https.onCall(
   let uuid = result.id
 
   // add the data to gw2Accounts collection
-  await db.collection('gw2Accounts').doc(uuid).set({ uuid: uuid, apiKey:apiKey, lastValid: new Date().toISOString(), freeToPlay:freeToPlay, id: result.name }).catch(err => console.log(err))
+  await db.collection(CollectionTypes.GW2_ACCOUNTS).doc(uuid).set({ uuid: uuid, apiKey:apiKey, lastValid: new Date().toISOString(), freeToPlay:freeToPlay, id: result.name }).catch(err => console.log(err))
 
-  await db.collection('participants').doc(user).set({ apiToken: apiKey, uuid: uuid }, {merge: true}).catch(err => console.log(err))
+  await db.collection(CollectionTypes.TOYMAKERS).doc(user).set({ apiToken: apiKey, uuid: uuid }, {merge: true}).catch(err => console.log(err))
 
   // return that is is a success
   return {success: "API key added"}
@@ -76,7 +78,7 @@ const assignedGiftees = functions.https.onCall(
   if(gifter_uuid.error){return {error: "no API key set"}}
   gifter_uuid = gifter_uuid.success
 
-  let giftee = await db.collection('events').doc(EVENT).collection('participants').where('gifter', '==', gifter_uuid).get()
+  let giftee = await db.collection(CollectionTypes.EVENTS).doc(EVENT).collection(CollectionTypes.EVENTS__PARTICIPANTS).where('gifter', '==', gifter_uuid).get()
   if (giftee.empty) {return {error: "No valid users"}}
 
   // array in case the user is sending gifts to multiple folks

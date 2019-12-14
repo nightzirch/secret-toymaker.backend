@@ -1,3 +1,5 @@
+const CollectionTypes = require("../utils/types/CollectionTypes")
+
 /*
 This is for when folks decide to participate, sets up the required values
 */
@@ -30,11 +32,11 @@ const participate = functions.https.onCall(
     if (!participate) {
       // user wishes to undo their participation
 
-      let deleteDoc = await db.collection('events').doc(EVENT).collection('participants').doc(uuid).delete().then(() => {return true}).catch(() => {return false})
-      let counter = await db.collection('events').doc(EVENT).set({ participants: admin.firestore.FieldValue.increment(-1) }, { merge: true }).then(() => {return true}).catch(() => {return false});
+      let deleteDoc = await db.collection(CollectionTypes.EVENTS).doc(EVENT).collection(CollectionTypes.EVENTS__PARTICIPANTS).doc(uuid).delete().then(() => {return true}).catch(() => {return false})
+      let counter = await db.collection(CollectionTypes.EVENTS).doc(EVENT).set({ participants: admin.firestore.FieldValue.increment(-1) }, { merge: true }).then(() => {return true}).catch(() => {return false});
 
       // its now an entry in a collection, so remove that
-      let eventEntry = await db.collection('gw2Accounts').doc(uuid).collection('events').doc(EVENT).delete().then(() => {return true}).catch(() => {return false})
+      let eventEntry = await db.collection(CollectionTypes.GW2_ACCOUNTS).doc(uuid).collection(CollectionTypes.GW2_ACCOUNTS__EVENTS).doc(EVENT).delete().then(() => {return true}).catch(() => {return false})
 
       if (deleteDoc && counter && eventEntry) {
         return { success: "Successfully removed" }
@@ -44,7 +46,7 @@ const participate = functions.https.onCall(
     }
 
     // check if already exists
-    let currentValueRaw = await db.collection('events').doc(EVENT).collection('participants').doc(uuid).get()
+    let currentValueRaw = await db.collection(CollectionTypes.EVENTS).doc(EVENT).collection(CollectionTypes.EVENTS__PARTICIPANTS).doc(uuid).get()
     if (currentValueRaw.exists) {return { success: "Already added" }}
 
     let gameAccount = await getGw2Account(uuid)
@@ -75,11 +77,11 @@ const participate = functions.https.onCall(
     }
 
     // adding the user to participants so tehy can get a match
-    let entryResult = await db.collection('events').doc(EVENT).collection('participants').doc(uuid).set(entry).then(() => {return true}).catch(() => {return false})
+    let entryResult = await db.collection(CollectionTypes.EVENTS).doc(EVENT).collection(CollectionTypes.EVENTS__PARTICIPANTS).doc(uuid).set(entry).then(() => {return true}).catch(() => {return false})
     // inrecing teh counter for global stats
-    let counter = await db.collection('events').doc(EVENT).set({ participants: admin.firestore.FieldValue.increment(1) }, { merge: true }).then(() => {return true}).catch(() => {return false})
+    let counter = await db.collection(CollectionTypes.EVENTS).doc(EVENT).set({ participants: admin.firestore.FieldValue.increment(1) }, { merge: true }).then(() => {return true}).catch(() => {return false})
     // adding to teh gw2 account record
-    let eventEntry = await db.collection('gw2Accounts').doc(uuid).collection('events').doc(EVENT).set({ entered: entryDate, uuid: uuid }, { merge: true }).then(() => {return true}).catch(() => {return false})
+    let eventEntry = await db.collection(CollectionTypes.GW2_ACCOUNTS).doc(uuid).collection(CollectionTypes.GW2_ACCOUNTS__EVENTS).doc(EVENT).set({ entered: entryDate, uuid: uuid }, { merge: true }).then(() => {return true}).catch(() => {return false})
 
     // check result and return to frontend
     if (entryResult && counter && eventEntry) {
@@ -106,7 +108,7 @@ const participateStatus = functions.https.onCall(
     let uuid = await getUUID(user)
     if (uuid.error) {return { error: "no API key set" }}
 
-    let events = await db.collection('gw2Accounts').doc(uuid.success).collection('events').get()
+    let events = await db.collection(CollectionTypes.GW2_ACCOUNTS).doc(uuid.success).collection(CollectionTypes.GW2_ACCOUNTS__EVENTS).get()
     if (events.empty) {return {success: [] }}
 
     let result = []

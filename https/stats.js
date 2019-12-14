@@ -1,3 +1,6 @@
+const CollectionTypes = require("../utils/types/CollectionTypes")
+
+
 /*
 This manages sending, recieving and reporting gifts.
 
@@ -75,7 +78,7 @@ const getStats = functions.https.onCall(
    * @returns {Result}
    */
   async(context) => {
-  let statsDoc = await db.collection('events').doc(EVENT).get()
+  let statsDoc = await db.collection(CollectionTypes.EVENTS).doc(EVENT).get()
   if (!statsDoc.exists) {return {error: "No stats"}}
 
   const statsData = statsDoc.data();
