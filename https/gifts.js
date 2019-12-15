@@ -1,7 +1,7 @@
 const CollectionTypes = require("../utils/types/CollectionTypes");
 
 /*
-This manages sending, recieving and reporting gifts.
+This manages initializing, sending, recieving and reporting gifts.
 
 also has functions to return admin stuff as well
 */
@@ -16,41 +16,42 @@ const { EVENT } = require("../config/constants");
 const db = require("../config/db");
 
 /**
- * @namespace sendGift
- * @return {sendGift~inner} - the returned function
+ * @namespace updateGiftSentStatus
+ * @return {updateGiftSentStatus~inner} - the returned function
  */
-const sendGift = functions.https.onCall(
+const updateGiftSentStatus = functions.https.onCall(
   /**
-   * marks the gift sent on boith the gifter and giftees account
+   * Updates the sent status of the gift
    * @inner
    * @param {object} data - details about the giftee
    * @param {string} data.user - user object or uid
-   * @param {boolean} data.value - marks it either true or false
-   * @param {string} data.gifteeGameAccountUUID - UUID of the giftee, if you do not know it
-   * @param {object} [context] - This is used by firebase, no idea what it does, I think its added automatically
+   * @param {string} data.giftId - the uid for the gift
+   * @param {bool} data.isSent - if the gift is sent
    * @returns {Result}
    */
-  async ({ user, value, gifteeGameAccountUUID }, context) => {
-    // this has to mark both the giftee and gifter
-
-    if (!gifteeGameAccountUUID) {
-      return { error: "no gifteeGameAccountUUID set" };
-    }
-
-    if (typeof value === "undefined") {
-      value = true;
-    }
-    // gifter first
+  async ({ user, giftId, isSent }) => {
     let gameAccountUUID = await getGameAccountUUID(user);
     if (gameAccountUUID.error) {
       return { error: "no API key set" };
     }
-    let entryResult = await db
-      .collection(CollectionTypes.EVENTS)
-      .doc(EVENT)
-      .collection(CollectionTypes.EVENTS__PARTICIPANTS)
-      .doc(gameAccountUUID.success)
-      .set({ sent_own: value }, { merge: true })
+
+    let eventDoc = db.collection(CollectionTypes.EVENTS).doc(EVENT);
+
+    let giftDoc = eventDoc
+      .collection(CollectionTypes.EVENTS__GIFTS)
+      .doc(giftId);
+
+    if (!giftDoc.exists) {
+      return { error: `Found no gifts with id: ${giftId}` };
+    }
+
+    let isGiftUpdatedSuccessfully = giftDoc
+      .set(
+        {
+          sent: isSent ? new Date().toISOString() : null
+        },
+        { merge: true }
+      )
       .then(() => {
         return true;
       })
@@ -58,98 +59,199 @@ const sendGift = functions.https.onCall(
         return false;
       });
 
-    // giftee now, the giftee's gameAccountUUID is known
-    let gifteeStatus = await markGifteeAccount(
-      { gameAccountUUID: gifteeGameAccountUUID },
-      { field: "sent", value: value }
-    );
-
-    let gw2Account = await markGw2Account({
-      gifterGameAccountUUID: gameAccountUUID.success,
-      field: "sent",
-      value: value
-    });
-
-    // check result and return to frontend
-    if (entryResult && gifteeStatus.success && gw2Account.success) {
-      return { success: "Successfully marked sent" };
-    } else {
-      return { error: "Error in marking sent" + gifteeStatus };
-    }
+    return isGiftUpdatedSuccessfully
+      ? { success: "Successfully updated gift's sent status." }
+      : { error: "Failed updating gift's sent status." };
   }
 );
 
 /**
- * @namespace receiveGift
- * @return {receiveGift~inner} - the returned function
+ * @namespace updateGiftReceivedStatus
+ * @return {updateGiftReceivedStatus~inner} - the returned function
  */
-const receiveGift = functions.https.onCall(
+const updateGiftReceivedStatus = functions.https.onCall(
   /**
-   * marks the gift recieved on the giftees account
+   * Updates the sent status of the gift
    * @inner
    * @param {object} data - details about the giftee
    * @param {string} data.user - user object or uid
-   * @param {boolean} data.value - marks it either true or false
-   * @param {object} [context] - This is used by firebase, no idea what it does, I think its added automatically
+   * @param {string} data.giftId - the uid for the gift
+   * @param {bool} data.isReceived - if the gift is received
    * @returns {Result}
    */
-  async ({ user, value }, context) => {
-    // on the giftee (current user)
-    let gifteeStatus = await markGifteeAccount(
-      { user: user },
-      { field: "received", value: value }
-    );
-
-    let gw2Account = await markGw2Account({
-      user: user,
-      field: "received",
-      value: value
-    });
-
-    // check result and return to frontend
-    if (gifteeStatus.success && gw2Account.success) {
-      return { success: gifteeStatus.success };
-    } else {
-      return { error: gifteeStatus.error };
+  async ({ user, giftId, isReceived }) => {
+    let gameAccountUUID = await getGameAccountUUID(user);
+    if (gameAccountUUID.error) {
+      return { error: "no API key set" };
     }
+
+    let eventDoc = db.collection(CollectionTypes.EVENTS).doc(EVENT);
+
+    let giftDoc = eventDoc
+      .collection(CollectionTypes.EVENTS__GIFTS)
+      .doc(giftId);
+
+    if (!giftDoc.exists) {
+      return { error: `Found no gifts with id: ${giftId}` };
+    }
+
+    let isGiftUpdatedSuccessfully = giftDoc
+      .set(
+        {
+          received: isReceived ? new Date().toISOString() : null
+        },
+        { merge: true }
+      )
+      .then(() => {
+        return true;
+      })
+      .catch(() => {
+        return false;
+      });
+
+    return isGiftUpdatedSuccessfully
+      ? { success: "Successfully updated gift's received status." }
+      : { error: "Failed updating gift's received status." };
   }
 );
 
 /**
- * @namespace reportGift
- * @return {reportGift~inner} - the returned function
+ * @namespace updateGiftReportedStatus
+ * @return {updateGiftReportedStatus~inner} - the returned function
  */
-const reportGift = functions.https.onCall(
+const updateGiftReportedStatus = functions.https.onCall(
   /**
-   * marks the gift reported on the giftees account
+   * Updates the sent status of the gift
    * @inner
    * @param {object} data - details about the giftee
    * @param {string} data.user - user object or uid
-   * @param {boolean} data.value - marks it either true or false
-   * @param {string} [data.message] - message for reporting
-   * @param {object} [context] - This is used by firebase, no idea what it does, I think its added automatically
+   * @param {string} data.giftId - the uid for the gift
+   * @param {bool} data.isReporting - if the gift is being reported
    * @returns {Result}
    */
-  async ({ user, value, message }, context) => {
-    // on the giftee (current user)
-    let gifteeStatus = await markGifteeAccount(
-      { user: user },
-      { field: "reported", value: value, message: message }
-    );
-
-    let gw2Account = await markGw2Account({
-      user: user,
-      field: "reported",
-      value: value
-    });
-
-    // check result and return to frontend
-    if (gifteeStatus.success && gw2Account.success) {
-      return { success: gifteeStatus.success };
-    } else {
-      return { error: gifteeStatus.error };
+  async ({ user, giftId, isReporting }) => {
+    let gameAccountUUID = await getGameAccountUUID(user);
+    if (gameAccountUUID.error) {
+      return { error: "no API key set" };
     }
+
+    let eventDoc = db.collection(CollectionTypes.EVENTS).doc(EVENT);
+
+    let giftDoc = eventDoc
+      .collection(CollectionTypes.EVENTS__GIFTS)
+      .doc(giftId);
+
+    if (!giftDoc.exists) {
+      return { error: `Found no gifts with id: ${giftId}` };
+    }
+
+    let isGiftUpdatedSuccessfully = giftDoc
+      .set(
+        {
+          reported: isReporting ? new Date().toISOString() : null
+        },
+        { merge: true }
+      )
+      .then(() => {
+        return true;
+      })
+      .catch(() => {
+        return false;
+      });
+
+    return isGiftUpdatedSuccessfully
+      ? { success: "Successfully updated gift's reported status." }
+      : { error: "Failed updating gift's reported status." };
   }
 );
 
-module.exports = { sendGift, receiveGift, reportGift };
+// /**
+//  * @namespace sendGift
+//  * @return {sendGift~inner} - the returned function
+//  */
+// const sendGift = functions.https.onCall(
+//   /**
+//    * marks the gift sent on boith the gifter and giftees account
+//    * @inner
+//    * @param {object} data - details about the giftee
+//    * @param {string} data.user - user object or uid
+//    * @param {boolean} data.value - marks it either true or false
+//    * @param {string} data.gifteeGameAccountUUID - UUID of the giftee, if you do not know it
+//    * @param {object} [context] - This is used by firebase, no idea what it does, I think its added automatically
+//    * @returns {Result}
+//    */
+//   async ({ user, value, gifteeGameAccountUUID }, context) => {
+//     // this has to mark both the giftee and gifter
+
+//     if (!gifteeGameAccountUUID) {
+//       return { error: "no gifteeGameAccountUUID set" };
+//     }
+
+//     if (typeof value === "undefined") {
+//       value = true;
+//     }
+
+//     // gifter first
+//     let gameAccountUUID = await getGameAccountUUID(user);
+//     if (gameAccountUUID.error) {
+//       return { error: "no API key set" };
+//     }
+
+//     let eventDoc = db.collection(CollectionTypes.EVENTS).doc(EVENT);
+
+//     let gifteeDoc = eventDoc
+//       .collection(CollectionTypes.EVENTS__PARTICIPANTS)
+//       .doc(gifteeGameAccountUUID);
+
+//     let toymakerDoc = eventDoc
+//       .collection(CollectionTypes.EVENTS__PARTICIPANTS)
+//       .doc(gameAccountUUID);
+
+//     let giftDoc = eventDoc.collection(CollectionTypes.EVENTS__GIFTS).doc();
+
+//     await giftDoc
+//       .set(
+//         {
+//           event: eventDoc,
+//           initialized: new Date.toISOString(),
+//           isReceived: false,
+//           isSent: false,
+//           isReported: false,
+//           toymaker: toymakerDoc,
+//           giftee: gifteeDoc
+//         },
+//         { merge: true }
+//       )
+//       .then(() => {
+//         return true;
+//       })
+//       .catch(() => {
+//         return false;
+//       });
+
+//     // giftee now, the giftee's gameAccountUUID is known
+//     let gifteeStatus = await markGifteeAccount(
+//       { gameAccountUUID: gifteeGameAccountUUID },
+//       { field: "sent", value: value }
+//     );
+
+//     let gw2Account = await markGw2Account({
+//       gifterGameAccountUUID: gameAccountUUID.success,
+//       field: "sent",
+//       value: value
+//     });
+
+//     // check result and return to frontend
+//     if (entryResult && gifteeStatus.success && gw2Account.success) {
+//       return { success: "Successfully marked sent" };
+//     } else {
+//       return { error: "Error in marking sent" + gifteeStatus };
+//     }
+//   }
+// );
+
+module.exports = {
+  updateGiftSentStatus,
+  updateGiftReceivedStatus,
+  updateGiftReportedStatus
+};

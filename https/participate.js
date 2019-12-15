@@ -102,7 +102,7 @@ const participate = functions.https.onCall(
       entryDate,
       notes,
       id: gameAccount.success.id,
-      isFreeToPlay: gameAccount.success.freeToPlay,
+      isFreeToPlay: gameAccount.success.isFreeToPlay,
       year: EVENT
     };
 
