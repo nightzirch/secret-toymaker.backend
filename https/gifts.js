@@ -165,6 +165,63 @@ const updateGiftReportedStatus = functions.https.onCall(
   }
 );
 
+/**
+ * @namespace getGifts
+ * @return {getGifts~inner} - the returned function
+ */
+const getGifts = functions.https.onCall(
+  /**
+   * Updates the sent status of the gift
+   * @inner
+   * @param {object} data - details about the giftee
+   * @param {string} data.user - user object or uid
+   * @returns {Result}
+   */
+  async ({ user }) => {
+    let gameAccountUUID = await getGameAccountUUID(user);
+    if (gameAccountUUID.error) {
+      return { error: "no API key set" };
+    }
+
+    let eventDoc = db.collection(CollectionTypes.EVENTS).doc(EVENT);
+
+    let incomingGiftsSnapshot = await eventDoc
+      .collection(CollectionTypes.EVENTS__GIFTS)
+      .where("giftee", "==", gameAccountUUID)
+      .get();
+
+    let outgoingGiftsSnapshot = await eventDoc
+      .collection(CollectionTypes.EVENTS__GIFTS)
+      .where("toymaker", "==", gameAccountUUID)
+      .get();
+
+    let incomingGifts = [];
+    let outgoingGifts = [];
+
+    if(!incomingGiftsSnapshot.empty) {
+      incomingGiftsSnapshot.forEach(doc => {
+        let data = doc.data();
+        incomingGifts.push(data);
+      })
+    }
+
+    if(!outgoingGiftsSnapshot.empty) {
+      outgoingGiftsSnapshot.forEach(doc => {
+        let data = doc.data();
+        outgoingGifts.push(data);
+      })
+    }
+
+    return {
+      success: {
+        outgoing: outgoingGifts,
+        incoming: incomingGifts
+      }
+    }
+  }
+);
+
+
 // /**
 //  * @namespace sendGift
 //  * @return {sendGift~inner} - the returned function
@@ -251,6 +308,7 @@ const updateGiftReportedStatus = functions.https.onCall(
 // );
 
 module.exports = {
+  getGifts,
   updateGiftSentStatus,
   updateGiftReceivedStatus,
   updateGiftReportedStatus

@@ -7,6 +7,7 @@ const {
   volunteer
 } = require("./https/gw2Accounts");
 const {
+  getGifts,
   updateGiftSentStatus,
   updateGiftReceivedStatus,
   updateGiftReportedStatus
@@ -22,6 +23,7 @@ const {
 exports.getAlerts = getAlerts;
 
 // Gifts
+exports.getGifts = getGifts;
 exports.updateGiftSentStatus = updateGiftSentStatus;
 exports.updateGiftReceivedStatus = updateGiftReceivedStatus;
 exports.updateGiftReportedStatus = updateGiftReportedStatus;
