@@ -7,11 +7,7 @@ also has functions to return admin stuff as well
 */
 const functions = require("firebase-functions");
 require("firebase/firestore");
-const {
-  getGameAccountUUID,
-  markGifteeAccount,
-  markGw2Account
-} = require("../utils/utils");
+const { getGameAccountUUID } = require("../utils/utils");
 const { EVENT } = require("../config/constants");
 const db = require("../config/db");
 
@@ -59,9 +55,28 @@ const updateGiftSentStatus = functions.https.onCall(
         return false;
       });
 
-    return isGiftUpdatedSuccessfully
+    if (!isGiftUpdatedSuccessfully)
+      return { error: "Failed updating gift's sent status." };
+
+    let isStatsUpdated = eventDoc
+      .set(
+        {
+          giftsSent: admin.firestore.FieldValue.increment(isSent ? 1 : -1)
+        },
+        { merge: true }
+      )
+      .then(() => {
+        return true;
+      })
+      .catch(() => {
+        return false;
+      });
+
+    return isStatsUpdated
       ? { success: "Successfully updated gift's sent status." }
-      : { error: "Failed updating gift's sent status." };
+      : {
+          error: "Failed updating statistics."
+        };
   }
 );
 
@@ -109,9 +124,28 @@ const updateGiftReceivedStatus = functions.https.onCall(
         return false;
       });
 
-    return isGiftUpdatedSuccessfully
+    if (!isGiftUpdatedSuccessfully)
+      return { error: "Failed updating gift's received status." };
+
+    let isStatsUpdated = eventDoc
+      .set(
+        {
+          giftsReceived: admin.firestore.FieldValue.increment(
+            isReceived ? 1 : -1
+          )
+        },
+        { merge: true }
+      )
+      .then(() => {
+        return true;
+      })
+      .catch(() => {
+        return false;
+      });
+
+    return isGiftUpdatedSuccessfully && isStatsUpdated
       ? { success: "Successfully updated gift's received status." }
-      : { error: "Failed updating gift's received status." };
+      : { error: "Failed updating statistics." };
   }
 );
 
@@ -127,9 +161,10 @@ const updateGiftReportedStatus = functions.https.onCall(
    * @param {string} data.user - user object or uid
    * @param {string} data.giftId - the uid for the gift
    * @param {bool} data.isReporting - if the gift is being reported
+   * @param {string} data.reportMessage - reason for reporting
    * @returns {Result}
    */
-  async ({ user, giftId, isReporting }) => {
+  async ({ user, giftId, isReporting, reportMessage }) => {
     let gameAccountUUID = await getGameAccountUUID(user);
     if (gameAccountUUID.error) {
       return { error: "no API key set" };
@@ -148,7 +183,27 @@ const updateGiftReportedStatus = functions.https.onCall(
     let isGiftUpdatedSuccessfully = giftDoc
       .set(
         {
-          reported: isReporting ? new Date().toISOString() : null
+          reported: isReporting ? new Date().toISOString() : null,
+          reportMessage: isReporting ? reportMessage : null
+        },
+        { merge: true }
+      )
+      .then(() => {
+        return true;
+      })
+      .catch(() => {
+        return false;
+      });
+
+    if (!isGiftUpdatedSuccessfully)
+      return { error: "Failed updating gift's reported status." };
+
+    let isStatsUpdated = eventDoc
+      .set(
+        {
+          giftsReported: admin.firestore.FieldValue.increment(
+            isReporting ? 1 : -1
+          )
         },
         { merge: true }
       )
@@ -161,7 +216,7 @@ const updateGiftReportedStatus = functions.https.onCall(
 
     return isGiftUpdatedSuccessfully
       ? { success: "Successfully updated gift's reported status." }
-      : { error: "Failed updating gift's reported status." };
+      : { error: "Failed updating statistics." };
   }
 );
 
@@ -198,18 +253,18 @@ const getGifts = functions.https.onCall(
     let incomingGifts = [];
     let outgoingGifts = [];
 
-    if(!incomingGiftsSnapshot.empty) {
+    if (!incomingGiftsSnapshot.empty) {
       incomingGiftsSnapshot.forEach(doc => {
         let data = doc.data();
         incomingGifts.push(data);
-      })
+      });
     }
 
-    if(!outgoingGiftsSnapshot.empty) {
+    if (!outgoingGiftsSnapshot.empty) {
       outgoingGiftsSnapshot.forEach(doc => {
         let data = doc.data();
         outgoingGifts.push(data);
-      })
+      });
     }
 
     return {
@@ -217,10 +272,9 @@ const getGifts = functions.https.onCall(
         outgoing: outgoingGifts,
         incoming: incomingGifts
       }
-    }
+    };
   }
 );
-
 
 // /**
 //  * @namespace sendGift
