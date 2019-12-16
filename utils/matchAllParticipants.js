@@ -46,7 +46,7 @@ const matchAllParticipants = async () => {
         !gifteeToymakerRelation[user.gameAccountUUID]
     );
 
-    let randomInt = Math.floor(Math.random() * tempArray.length);
+    let randomInt = Math.floor(Math.random() * allParticipantsData.length);
     let gifteeGameAccountUUID = possibleGiftees[randomInt].gameAccountUUID;
     gifteeToymakerRelation[gifteeGameAccountUUID] = toymakerGameAccountUUID;
   });

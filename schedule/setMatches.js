@@ -10,7 +10,7 @@ const db = require("../config/db");
  * @namespace setMatches
  * @return {setMatches~inner} - returns a scheduled function that runs 1 minute past every hour.
  */
-const setMatches = functions.pubsub.schedule("1 * * * *").onRun(
+const setMatches = functions.pubsub.schedule("10 * * * *").onRun(
   /**
    * Runs the script that matches all participant in the active event.
    * @inner
@@ -19,10 +19,11 @@ const setMatches = functions.pubsub.schedule("1 * * * *").onRun(
    */
   async context => {
     const currentStage = await getCurrentStage();
-    const { type } = currentStage;
 
     if (currentStage.type !== StageTypes.MATCHING) {
-      console.log(`Not in matching stage. Skipping setting matches. Current stage is ${currentStage}`);
+      console.log(
+        `Not in matching stage. Skipping setting matches. Current stage is ${currentStage}`
+      );
       return;
     }
 
