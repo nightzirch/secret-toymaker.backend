@@ -57,7 +57,7 @@ const updateApiKey = functions.https.onCall(
     let result = JSON.parse(accountData.body);
 
     // figure pout if the person is F2P
-    let freeToPlay = result.access.indexOf("PlayForFree ") !== -1;
+    let isFreeToPlay = result.access.indexOf("PlayForFree") !== -1;
 
     // get gameAccountUUID
     let gameAccountUUID = result.id;
@@ -70,7 +70,7 @@ const updateApiKey = functions.https.onCall(
         gameAccountUUID,
         apiToken,
         lastValid: new Date().toISOString(),
-        freeToPlay,
+        isFreeToPlay,
         id: result.name
       })
       .catch(err => console.log(err));

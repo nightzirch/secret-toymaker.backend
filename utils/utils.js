@@ -81,71 +81,6 @@ const getGw2Account = async gameAccountUUID => {
   return { success: userAccount.data() };
 };
 
-/**
- * This is the functions that matches everyone together for the initial round
- * @returns {Result}
- */
-const setAllRandomParticipant = async () => {
-  // this will run once manually
-  let allUsers = await db
-    .collection(CollectionTypes.EVENTS)
-    .doc(EVENT)
-    .collection(CollectionTypes.EVENTS__PARTICIPANTS)
-    .where("freeToPlay", "==", false)
-    .get();
-  if (allUsers.empty) {
-    return { error: "No valid users" };
-  }
-
-  let tmp = {};
-  let allUsersArray = [];
-
-  allUsers.forEach(doc => {
-    let data = doc.data();
-    tmp[data.participant] = data;
-    allUsersArray.push(data);
-  });
-  if (allUsersArray.length === 0) {
-    return { error: "No valid users" };
-  }
-
-  for (let i = 0; i < allUsersArray.length; i++) {
-    let gifterGameAccountUUID = allUsersArray[i].participant;
-
-    let tempArray = allUsersArray.filter(
-      user => user.gifter === null && user.participant !== gifterGameAccountUUID
-    );
-    let randomInt = Math.floor(Math.random() * tempArray.length);
-
-    let giftee_uuid = tempArray[randomInt].participant;
-
-    tmp[gifterGameAccountUUID].giftee = giftee_uuid;
-    tmp[giftee_uuid].gifter = gifterGameAccountUUID;
-
-    // updates allUsersArray to exclude this item
-    let foundIndex = allUsersArray.findIndex(
-      x => x.participant === giftee_uuid
-    );
-    allUsersArray[foundIndex].gifter = gifterGameAccountUUID;
-  }
-
-  // Batch it together
-  let batch = db.batch();
-  Object.keys(tmp).forEach(key => {
-    let reference = db
-      .collection(CollectionTypes.EVENTS)
-      .doc(EVENT)
-      .collection(CollectionTypes.EVENTS__PARTICIPANTS)
-      .doc(key);
-    batch.update(reference, {
-      gifter: tmp[key].gifter,
-      giftee: tmp[key].giftee
-    });
-  });
-  await batch.commit();
-
-  return { success: "all users assigned" };
-};
 
 /**
  * This queries teh database for folks who's participation matches the parameters specified
@@ -159,11 +94,10 @@ const setAllRandomParticipant = async () => {
 async function getGeneralQueries(field, comparison, value, skip, limit) {
   //if(typeof skip === "undefined"){skip = 0}
   //if(typeof limit === "undefined"){limit = 100}
+  const eventDoc = db.collection(CollectionTypes.EVENTS).doc(EVENT);
 
   let result = [];
-  let results = await db
-    .collection(CollectionTypes.EVENTS)
-    .doc(EVENT)
+  let results = await eventDoc
     .collection(CollectionTypes.EVENTS__PARTICIPANTS)
     .where(field, comparison, value)
     //.startAt(skip).limit(limit)
@@ -188,15 +122,14 @@ async function getGeneralQueries(field, comparison, value, skip, limit) {
  */
 const volunteerForNewGiftees = async (user, count) => {
   let gameAccountUUID = await getGameAccountUUID(user);
+  const eventDoc = db.collection(CollectionTypes.EVENTS).doc(EVENT);
   if (gameAccountUUID.error) {
     return { error: gameAccountUUID.error };
   }
   gameAccountUUID = gameAccountUUID.success;
 
   // check to see if said user has sent their initial gift
-  let sent = await db
-    .collection(CollectionTypes.EVENTS)
-    .doc(EVENT)
+  let sent = await eventDoc
     .collection(CollectionTypes.EVENT__PARTICIPANTS)
     .doc(gameAccountUUID)
     .get();
@@ -216,9 +149,7 @@ const volunteerForNewGiftees = async (user, count) => {
   }
 
   // now get list of peoople who havent gotten a goft
-  let noGift = await db
-    .collection(CollectionTypes.EVENTS)
-    .doc(EVENT)
+  let noGift = await eventDoc
     .collection(CollectionTypes.EVENT__PARTICIPANTS)
     .where("received", "==", false)
     .get();
@@ -249,9 +180,7 @@ const volunteerForNewGiftees = async (user, count) => {
     // only need to do up to the specified quantity
     if (i >= count) break;
     // update said user accounts with new gifter
-    let reference = db
-      .collection(CollectionTypes.EVENTS)
-      .doc(EVENT)
+    let reference = eventDoc
       .collection(CollectionTypes.EVENT__PARTICIPANTS)
       .doc(resultsArray[i].participant);
 
@@ -307,9 +236,10 @@ async function markGifteeAccount(
   if (typeof value === "undefined") {
     value = true;
   }
-  let currentValueRaw = await db
-    .collection(CollectionTypes.EVENTS)
-    .doc(EVENT)
+
+  const eventDoc = db.collection(CollectionTypes.EVENTS).doc(EVENT);
+
+  let currentValueRaw = await eventDoc
     .collection(CollectionTypes.EVENT__PARTICIPANTS)
     .doc(gameAccountUUID)
     .get();
@@ -327,9 +257,7 @@ async function markGifteeAccount(
     tmp.report = message;
   }
 
-  let entryResult = await db
-    .collection(CollectionTypes.EVENTS)
-    .doc(EVENT)
+  let entryResult = await eventDoc
     .collection(CollectionTypes.EVENT__PARTICIPANTS)
     .doc(gameAccountUUID)
     .set(tmp, { merge: true })
@@ -342,9 +270,7 @@ async function markGifteeAccount(
 
   let tmp2 = {};
   tmp2[field] = admin.firestore.FieldValue.increment(value ? 1 : -1);
-  let entryResult2 = await db
-    .collection(CollectionTypes.EVENTS)
-    .doc(EVENT)
+  let entryResult2 = await eventDoc
     .set(tmp2, { merge: true })
     .then(() => {
       return true;
@@ -440,7 +366,6 @@ async function markGw2Account({ gifterGameAccountUUID, user, field, value }) {
 module.exports = {
   getCurrentEvent,
   getGameAccountUUID,
-  setAllRandomParticipant,
   getGw2Account,
   getGeneralQueries,
   volunteerForNewGiftees,

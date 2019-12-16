@@ -46,6 +46,7 @@ const participate = functions.https.onCall(
         .catch(() => {
           return false;
         });
+        
       let counter = await db
         .collection(CollectionTypes.EVENTS)
         .doc(EVENT)
@@ -102,7 +103,7 @@ const participate = functions.https.onCall(
       entryDate,
       notes,
       id: gameAccount.success.id,
-      isFreeToPlay: gameAccount.success.freeToPlay,
+      isFreeToPlay: gameAccount.success.isFreeToPlay,
       year: EVENT
     };
 
