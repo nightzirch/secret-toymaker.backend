@@ -37,7 +37,9 @@ const updateGiftSentStatus = functions.https.onCall(
       .collection(CollectionTypes.EVENTS__GIFTS)
       .doc(giftId);
 
-    if (!giftDoc.exists) {
+    let gift = await giftDoc.get();
+
+    if (!gift.exists) {
       return { error: `Found no gifts with id: ${giftId}` };
     }
 
@@ -105,8 +107,9 @@ const updateGiftReceivedStatus = functions.https.onCall(
     let giftDoc = eventDoc
       .collection(CollectionTypes.EVENTS__GIFTS)
       .doc(giftId);
+    let gift = await giftDoc.get();
 
-    if (!giftDoc.exists) {
+    if (!gift.exists) {
       return { error: `Found no gifts with id: ${giftId}` };
     }
 
@@ -175,8 +178,9 @@ const updateGiftReportedStatus = functions.https.onCall(
     let giftDoc = eventDoc
       .collection(CollectionTypes.EVENTS__GIFTS)
       .doc(giftId);
+    let gift = await giftDoc.get();
 
-    if (!giftDoc.exists) {
+    if (!gift.exists) {
       return { error: `Found no gifts with id: ${giftId}` };
     }
 
@@ -214,7 +218,7 @@ const updateGiftReportedStatus = functions.https.onCall(
         return false;
       });
 
-    return isGiftUpdatedSuccessfully
+    return isGiftUpdatedSuccessfully && isStatsUpdated
       ? { success: "Successfully updated gift's reported status." }
       : { error: "Failed updating statistics." };
   }
@@ -275,91 +279,6 @@ const getGifts = functions.https.onCall(
     };
   }
 );
-
-// /**
-//  * @namespace sendGift
-//  * @return {sendGift~inner} - the returned function
-//  */
-// const sendGift = functions.https.onCall(
-//   /**
-//    * marks the gift sent on boith the gifter and giftees account
-//    * @inner
-//    * @param {object} data - details about the giftee
-//    * @param {string} data.user - user object or uid
-//    * @param {boolean} data.value - marks it either true or false
-//    * @param {string} data.gifteeGameAccountUUID - UUID of the giftee, if you do not know it
-//    * @param {object} [context] - This is used by firebase, no idea what it does, I think its added automatically
-//    * @returns {Result}
-//    */
-//   async ({ user, value, gifteeGameAccountUUID }, context) => {
-//     // this has to mark both the giftee and gifter
-
-//     if (!gifteeGameAccountUUID) {
-//       return { error: "no gifteeGameAccountUUID set" };
-//     }
-
-//     if (typeof value === "undefined") {
-//       value = true;
-//     }
-
-//     // gifter first
-//     let gameAccountUUID = await getGameAccountUUID(user);
-//     if (gameAccountUUID.error) {
-//       return { error: "no API key set" };
-//     }
-
-//     let eventDoc = db.collection(CollectionTypes.EVENTS).doc(EVENT);
-
-//     let gifteeDoc = eventDoc
-//       .collection(CollectionTypes.EVENTS__PARTICIPANTS)
-//       .doc(gifteeGameAccountUUID);
-
-//     let toymakerDoc = eventDoc
-//       .collection(CollectionTypes.EVENTS__PARTICIPANTS)
-//       .doc(gameAccountUUID);
-
-//     let giftDoc = eventDoc.collection(CollectionTypes.EVENTS__GIFTS).doc();
-
-//     await giftDoc
-//       .set(
-//         {
-//           event: eventDoc,
-//           initialized: new Date.toISOString(),
-//           isReceived: false,
-//           isSent: false,
-//           isReported: false,
-//           toymaker: toymakerDoc,
-//           giftee: gifteeDoc
-//         },
-//         { merge: true }
-//       )
-//       .then(() => {
-//         return true;
-//       })
-//       .catch(() => {
-//         return false;
-//       });
-
-//     // giftee now, the giftee's gameAccountUUID is known
-//     let gifteeStatus = await markGifteeAccount(
-//       { gameAccountUUID: gifteeGameAccountUUID },
-//       { field: "sent", value: value }
-//     );
-
-//     let gw2Account = await markGw2Account({
-//       gifterGameAccountUUID: gameAccountUUID.success,
-//       field: "sent",
-//       value: value
-//     });
-
-//     // check result and return to frontend
-//     if (entryResult && gifteeStatus.success && gw2Account.success) {
-//       return { success: "Successfully marked sent" };
-//     } else {
-//       return { error: "Error in marking sent" + gifteeStatus };
-//     }
-//   }
-// );
 
 module.exports = {
   getGifts,

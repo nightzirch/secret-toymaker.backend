@@ -26,8 +26,6 @@ const matchAllParticipants = async () => {
   let gifteeToymakerRelation = {};
   let allParticipantsData = [];
 
-  let tmp = {};
-
   allParticipants.forEach(doc => {
     let data = doc.data();
     allParticipantsData.push(data);

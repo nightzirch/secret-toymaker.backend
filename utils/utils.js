@@ -81,7 +81,6 @@ const getGw2Account = async gameAccountUUID => {
   return { success: userAccount.data() };
 };
 
-
 /**
  * This queries teh database for folks who's participation matches the parameters specified
  * @param {string} field - Field to search on: sent_own, received, reported
@@ -123,6 +122,7 @@ async function getGeneralQueries(field, comparison, value, skip, limit) {
 const volunteerForNewGiftees = async (user, count) => {
   let gameAccountUUID = await getGameAccountUUID(user);
   const eventDoc = db.collection(CollectionTypes.EVENTS).doc(EVENT);
+
   if (gameAccountUUID.error) {
     return { error: gameAccountUUID.error };
   }
@@ -133,6 +133,7 @@ const volunteerForNewGiftees = async (user, count) => {
     .collection(CollectionTypes.EVENT__PARTICIPANTS)
     .doc(gameAccountUUID)
     .get();
+
   if (sent.empty) {
     return { error: "has not sent initial gift" };
   }
@@ -140,11 +141,9 @@ const volunteerForNewGiftees = async (user, count) => {
   // normalise the quantities, just in case its spoofed
   if (!count) {
     count = 1;
-  }
-  if (count > 10) {
+  } else if (count > 10) {
     count = 1;
-  }
-  if (count < 1) {
+  } else if (count < 1) {
     count = 1;
   }
 
@@ -153,6 +152,7 @@ const volunteerForNewGiftees = async (user, count) => {
     .collection(CollectionTypes.EVENT__PARTICIPANTS)
     .where("received", "==", false)
     .get();
+
   if (noGift.empty) {
     return { error: "has not sent initial gift" };
   }
@@ -161,6 +161,7 @@ const volunteerForNewGiftees = async (user, count) => {
   // anyone who didnt (mark) send themselves is disqualified
 
   let resultsArray = [];
+
   noGift.forEach(doc => {
     let data = doc.data();
     if (
@@ -243,6 +244,7 @@ async function markGifteeAccount(
     .collection(CollectionTypes.EVENT__PARTICIPANTS)
     .doc(gameAccountUUID)
     .get();
+    
   if (!currentValueRaw.exists) {
     return { error: "no such user" };
   }
