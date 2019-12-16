@@ -9,7 +9,7 @@ const { StageTypes } = require("../config/constants");
  * @namespace setMatches
  * @return {setMatches~inner} - returns a scheduled function that runs 1 minute past every hour.
  */
-const setMatches = functions.pubsub.schedule("1 * * * *").onRun(
+const setMatches = functions.pubsub.schedule("15 * * * *").onRun(
   /**
    * Runs the script that matches all participant in the active event.
    * @inner
