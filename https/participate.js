@@ -46,6 +46,7 @@ const participate = functions.https.onCall(
         .catch(() => {
           return false;
         });
+        
       let counter = await db
         .collection(CollectionTypes.EVENTS)
         .doc(EVENT)

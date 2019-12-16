@@ -18,6 +18,7 @@ const {
   getReported,
   getStats
 } = require("./https/stats");
+const { setMatches } = require("./schedule/setMatches");
 
 // Alerts
 exports.getAlerts = getAlerts;
@@ -38,11 +39,11 @@ exports.volunteer = volunteer;
 exports.getStats = getStats;
 exports.participateStatus = participateStatus;
 
+// Scheduled function for setting matches
+exports.setMatches = setMatches;
+
 // admin commands
 //exports.getNotSent = getNotSent
 //exports.getNotReceived = getNotReceived
 //exports.getReported = getReported
 //exports.testing = require("./testing")
-
-// for setting the matches, beware can only be done once
-// exports.setmatches = require("./https/setMatches")
