@@ -5,6 +5,7 @@ const CollectionTypes = require("../utils/types/CollectionTypes");
 const { getCurrentStage } = require("../utils/getCurrentStage");
 const { StageTypes } = require("../config/constants");
 const db = require("../config/db");
+const { setMatchingBegun, setMatchingDone } = require("../utils/matching");
 
 /**
  * @namespace setMatches
@@ -47,24 +48,20 @@ const setMatches = functions.pubsub.schedule("1 * * * *").onRun(
       return;
     }
 
-    await db
-      .collection(CollectionTypes.EVENTS)
-      .doc(EVENT)
-      .set({ isMatchingBegun: true }, { merge: true });
+    await setMatchingBegun(true);
 
     const matchingResults = await matchAllParticipants();
 
     if (matchingResults.success) {
-      await db
-        .collection(CollectionTypes.EVENTS)
-        .doc(EVENT)
-        .set({ isMatchingDone: true }, { merge: true });
+      await setMatchingDone(true);
 
       console.log("Matching for the event successful.");
       return;
     }
 
     console.log("Matching for the event failed.");
+    await setMatchingBegun(false);
+    await setMatchingDone(false);
     return;
   }
 );

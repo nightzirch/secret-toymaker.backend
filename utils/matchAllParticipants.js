@@ -5,6 +5,7 @@ const db = require("../config/db");
 const { EVENT } = require("../config/constants");
 
 const { initializeGift } = require("./initializeGift");
+const { setMatchingBegun, setMatchingDone } = require("./matching");
 
 /**
  * This is the functions that matches everyone together for the initial round
@@ -20,6 +21,8 @@ const matchAllParticipants = async () => {
     .get();
 
   if (allParticipants.empty) {
+    await setMatchingBegun(false);
+    await setMatchingDone(false);
     return { error: "No valid users" };
   }
 
@@ -32,6 +35,8 @@ const matchAllParticipants = async () => {
   });
 
   if (allParticipantsData.length === 0) {
+    await setMatchingBegun(false);
+    await setMatchingDone(false);
     return { error: "No valid users" };
   }
 
@@ -52,14 +57,17 @@ const matchAllParticipants = async () => {
   });
 
   return Promise.all(
-    Object.keys(gifteeToymakerRelation).map(gifteeGameAccountUUID => {
+    Object.keys(gifteeToymakerRelation).map(async gifteeGameAccountUUID => {
       const toymakerGameAccountUUID =
         gifteeToymakerRelation[gifteeGameAccountUUID];
-      return initializeGift(
+
+      const initializeGiftResponse = await initializeGift(
         toymakerGameAccountUUID,
         gifteeGameAccountUUID,
         true
       );
+
+      return initializeGiftResponse;
     })
   )
     .then(() => {

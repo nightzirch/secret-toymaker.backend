@@ -6,3 +6,4 @@ node_modules/
 *.silver.*
 firebase-debug.log
 functions/testing.js
+config/app-engine-service-account-key.json
