@@ -107,19 +107,37 @@ const participate = functions.https.onCall(
       year: EVENT
     };
 
-    // adding the user to participants so tehy can get a match
-    let entryResult = await db
+    // adding the user to participants so they can get a match
+    let participantDoc = db
       .collection(CollectionTypes.EVENTS)
       .doc(EVENT)
       .collection(CollectionTypes.EVENTS__PARTICIPANTS)
-      .doc(gameAccountUUID)
-      .set(participation)
-      .then(() => {
-        return true;
-      })
-      .catch(() => {
-        return false;
-      });
+      .doc(gameAccountUUID);
+
+    let participantSnap = await participantDoc.get();
+    let entryResult;
+
+    if (participantSnap.exists) {
+      entryResult = await participantDoc
+        .update(participation)
+        .then(() => {
+          return true;
+        })
+        .catch(e => {
+          console.log("Error when updating participant.", e);
+          return false;
+        });
+    } else {
+      entryResult = await participantDoc
+        .set(participation)
+        .then(() => {
+          return true;
+        })
+        .catch(e => {
+          console.log("Error when setting participant.", e);
+          return false;
+        });
+    }
 
     // inrecing teh counter for global stats
     let counter = await db

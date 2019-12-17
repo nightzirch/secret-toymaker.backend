@@ -23,7 +23,7 @@ const setMatches = functions.pubsub.schedule("1 * * * *").onRun(
 
     if (currentStage.type !== StageTypes.MATCHING) {
       console.log(
-        `Not in matching stage. Skipping setting matches. Current stage is ${currentStage}`
+        `Not in matching stage. Skipping setting matches. Current stage is ${currentStage.type}`
       );
       return;
     }
