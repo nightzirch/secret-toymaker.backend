@@ -61,7 +61,7 @@ const matchAllParticipants = async () => {
 
   let batch = db.batch();
 
-  gifteeToymakerRelation.forEach(gifteeGameAccountUUID => {
+  Object.keys(gifteeToymakerRelation).forEach(gifteeGameAccountUUID => {
     const toymakerGameAccountUUID =
       gifteeToymakerRelation[gifteeGameAccountUUID];
 
