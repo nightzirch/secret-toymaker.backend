@@ -51,7 +51,7 @@ const matchAllParticipants = async () => {
     gifteeToymakerRelation[gifteeGameAccountUUID] = toymakerGameAccountUUID;
   });
 
-  Promise.all(
+  return Promise.all(
     Object.keys(gifteeToymakerRelation).map(gifteeGameAccountUUID => {
       const toymakerGameAccountUUID =
         gifteeToymakerRelation[gifteeGameAccountUUID];
