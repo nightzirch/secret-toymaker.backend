@@ -46,7 +46,7 @@ const participate = functions.https.onCall(
         .catch(() => {
           return false;
         });
-        
+
       let counter = await db
         .collection(CollectionTypes.EVENTS)
         .doc(EVENT)
@@ -199,17 +199,15 @@ const participateStatus = functions.https.onCall(
     events.forEach(doc => {
       let participationData = doc.data();
       participationRefs.push(participationData.participation);
-
-      console.log("Participation Data: ", participationData);
     });
 
     let results = await Promise.all(
       participationRefs.map(async docPromise => {
         const doc = await docPromise.get();
-        if(!doc.exists) return null;
+        if (!doc.exists) return null;
 
         let participation = doc.data();
-        const { entryDate, gameAccountUUID, notes, year} = participation;
+        const { entryDate, gameAccountUUID, notes, year } = participation;
 
         return {
           year,
@@ -222,9 +220,9 @@ const participateStatus = functions.https.onCall(
 
     console.log("Matching results: ", results);
 
-    result = result.filter(e => e);
+    results = results.filter(e => e);
 
-    return { success: result };
+    return { success: results };
   }
 );
 module.exports = { participate, participateStatus };
