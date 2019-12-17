@@ -73,14 +73,16 @@ const matchAllParticipants = async () => {
     );
   });
 
-  await batch
+  const result = await batch
     .commit()
     .then(() => {
       return { success: "All users matched successfully." };
     })
-    .catch(() => {
-      return { error: "Error while matching." };
+    .catch(e => {
+      return { error: "Error while matching.", trace: e };
     });
+
+  return result;
 };
 
 module.exports = {

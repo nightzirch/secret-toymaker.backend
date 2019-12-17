@@ -11,7 +11,7 @@ const { setMatchingBegun, setMatchingDone } = require("../utils/matching");
  * @namespace setMatches
  * @return {setMatches~inner} - returns a scheduled function that runs 1 minute past every hour.
  */
-const setMatches = functions.pubsub.schedule("20 * * * *").onRun(
+const setMatches = functions.pubsub.schedule("1 * * * *").onRun(
   /**
    * Runs the script that matches all participant in the active event.
    * @inner

@@ -40,7 +40,7 @@ const initializeGift = async (
   let isGiftInitialized = await giftDoc
     .set({
       event: eventDoc,
-      initialized: new Date.toISOString(),
+      initialized: new Date().toISOString(),
       isPrimary,
       received: null,
       sent: null,
@@ -114,7 +114,7 @@ const updateBatchWithInitialGift = (
 
   let giftData = {
     event: eventDoc,
-    initialized: new Date.toISOString(),
+    initialized: new Date().toISOString(),
     isPrimary,
     received: null,
     sent: null,
@@ -131,7 +131,7 @@ const updateBatchWithInitialGift = (
     outgoingGifts: admin.firestore.FieldValue.arrayUnion(giftDoc)
   };
 
-  batch.update(giftDoc, giftData);
+  batch.set(giftDoc, giftData);
   batch.update(gifteeDoc, gifteeData);
   batch.update(toymakerDoc, toymakerData);
 
