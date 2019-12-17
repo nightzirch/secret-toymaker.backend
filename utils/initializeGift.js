@@ -12,7 +12,11 @@ const CollectionTypes = require("../utils/types/CollectionTypes");
  * @param {bool} isPrimary - Is this the primary/required gift?
  * @returns {Result}
  */
-const initializeGift = async (toymakerGameAccountUUID, gifteeGameAccountUUID, isPrimary = false) => {
+const initializeGift = async (
+  toymakerGameAccountUUID,
+  gifteeGameAccountUUID,
+  isPrimary = false
+) => {
   if (!toymakerGameAccountUUID) {
     return { error: "no toymakerGameAccountUUID set" };
   }
@@ -73,4 +77,65 @@ const initializeGift = async (toymakerGameAccountUUID, gifteeGameAccountUUID, is
   }
 };
 
-module.exports = { initializeGift };
+/**
+ * Updates a batch with data about initial gifts
+ * @inner
+ * @param {object} batch - The batch which we'll commit later
+ * @param {string} toymakerGameAccountUUID - UUID of the toymaker
+ * @param {string} gifteeGameAccountUUID - UUID of the giftee
+ * @param {bool} isPrimary - Is this the primary/required gift?
+ * @returns {object}
+ */
+const updateBatchWithInitialGift = (
+  batch,
+  toymakerGameAccountUUID,
+  gifteeGameAccountUUID,
+  isPrimary = false
+) => {
+  if (!toymakerGameAccountUUID) {
+    return { error: "no toymakerGameAccountUUID set" };
+  }
+
+  if (!gifteeGameAccountUUID) {
+    return { error: "no gifteeGameAccountUUID set" };
+  }
+
+  let eventDoc = db.collection(CollectionTypes.EVENTS).doc(EVENT);
+
+  let gifteeDoc = eventDoc
+    .collection(CollectionTypes.EVENTS__PARTICIPANTS)
+    .doc(gifteeGameAccountUUID);
+
+  let toymakerDoc = eventDoc
+    .collection(CollectionTypes.EVENTS__PARTICIPANTS)
+    .doc(toymakerGameAccountUUID);
+
+  let giftDoc = eventDoc.collection(CollectionTypes.EVENTS__GIFTS).doc();
+
+  let giftData = {
+    event: eventDoc,
+    initialized: new Date.toISOString(),
+    isPrimary,
+    received: null,
+    sent: null,
+    reported: false,
+    toymaker: toymakerDoc,
+    giftee: gifteeDoc
+  };
+
+  let gifteeData = {
+    incomingGifts: admin.firestore.FieldValue.arrayUnion(giftDoc)
+  };
+
+  let toymakerData = {
+    outgoingGifts: admin.firestore.FieldValue.arrayUnion(giftDoc)
+  };
+
+  batch.update(giftDoc, giftData);
+  batch.update(gifteeDoc, gifteeData);
+  batch.update(toymakerDoc, toymakerData);
+
+  return { sucess: "Successfully updated batch." };
+};
+
+module.exports = { initializeGift, updateBatchWithInitialGift };

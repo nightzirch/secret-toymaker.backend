@@ -4,7 +4,10 @@ const CollectionTypes = require("../utils/types/CollectionTypes");
 const db = require("../config/db");
 const { EVENT } = require("../config/constants");
 
-const { initializeGift } = require("./initializeGift");
+const {
+  initializeGift,
+  updateBatchWithInitialGift
+} = require("./initializeGift");
 const { setMatchingBegun, setMatchingDone } = require("./matching");
 
 /**
@@ -56,20 +59,22 @@ const matchAllParticipants = async () => {
     gifteeToymakerRelation[gifteeGameAccountUUID] = toymakerGameAccountUUID;
   });
 
-  return Promise.all(
-    Object.keys(gifteeToymakerRelation).map(async gifteeGameAccountUUID => {
-      const toymakerGameAccountUUID =
-        gifteeToymakerRelation[gifteeGameAccountUUID];
+  let batch = db.batch();
 
-      const initializeGiftResponse = await initializeGift(
-        toymakerGameAccountUUID,
-        gifteeGameAccountUUID,
-        true
-      );
+  gifteeToymakerRelation.forEach(gifteeGameAccountUUID => {
+    const toymakerGameAccountUUID =
+      gifteeToymakerRelation[gifteeGameAccountUUID];
 
-      return initializeGiftResponse;
-    })
-  )
+    updateBatchWithInitialGift(
+      batch,
+      toymakerGameAccountUUID,
+      gifteeGameAccountUUID,
+      true
+    );
+  });
+
+  await batch
+    .commit()
     .then(() => {
       return { success: "All users matched successfully." };
     })
