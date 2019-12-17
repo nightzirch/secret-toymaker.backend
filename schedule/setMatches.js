@@ -11,7 +11,7 @@ const { setMatchingBegun, setMatchingDone } = require("../utils/matching");
  * @namespace setMatches
  * @return {setMatches~inner} - returns a scheduled function that runs 1 minute past every hour.
  */
-const setMatches = functions.pubsub.schedule("1 * * * *").onRun(
+const setMatches = functions.pubsub.schedule("40 * * * *").onRun(
   /**
    * Runs the script that matches all participant in the active event.
    * @inner
@@ -59,7 +59,7 @@ const setMatches = functions.pubsub.schedule("1 * * * *").onRun(
       return;
     }
 
-    console.log("Matching for the event failed.");
+    console.log("Matching for the event failed.", matchingResults);
     await setMatchingBegun(false);
     await setMatchingDone(false);
     return;

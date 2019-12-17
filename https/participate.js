@@ -198,12 +198,16 @@ const participateStatus = functions.https.onCall(
 
     events.forEach(doc => {
       let participationData = doc.data();
-      participationRefs.push(participationData.participation.get());
+      participationRefs.push(participationData.participation);
+
+      console.log("Participation Data: ", participationData);
     });
 
-    let result = await Promise.all(
+    let results = await Promise.all(
       participationRefs.map(async docPromise => {
-        const doc = await docPromise;
+        const doc = await docPromise.get();
+        if(!doc.exists) return null;
+
         let participation = doc.data();
         const { entryDate, gameAccountUUID, notes, year} = participation;
 
@@ -215,6 +219,8 @@ const participateStatus = functions.https.onCall(
         };
       })
     );
+
+    console.log("Matching results: ", results);
 
     result = result.filter(e => e);
 
