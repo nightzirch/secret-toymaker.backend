@@ -236,8 +236,6 @@ const participateStatus = functions.https.onCall(
       })
     );
 
-    console.log("Matching results: ", results);
-
     results = results.filter(e => e);
 
     return { success: results };

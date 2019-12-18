@@ -241,17 +241,22 @@ const getGifts = functions.https.onCall(
     if (gameAccountUUID.error) {
       return { error: "no API key set" };
     }
+    gameAccountUUID = gameAccountUUID.success;
 
     let eventDoc = db.collection(CollectionTypes.EVENTS).doc(EVENT);
 
+    let participantDoc = eventDoc
+      .collection(CollectionTypes.EVENTS__PARTICIPANTS)
+      .doc(gameAccountUUID);
+
     let incomingGiftsSnapshot = await eventDoc
       .collection(CollectionTypes.EVENTS__GIFTS)
-      .where("giftee", "==", gameAccountUUID)
+      .where("giftee", "==", participantDoc)
       .get();
 
     let outgoingGiftsSnapshot = await eventDoc
       .collection(CollectionTypes.EVENTS__GIFTS)
-      .where("toymaker", "==", gameAccountUUID)
+      .where("toymaker", "==", participantDoc)
       .get();
 
     let incomingGifts = [];
@@ -260,14 +265,33 @@ const getGifts = functions.https.onCall(
     if (!incomingGiftsSnapshot.empty) {
       incomingGiftsSnapshot.forEach(doc => {
         let data = doc.data();
-        incomingGifts.push(data);
+        
+        incomingGifts.push({
+          id: doc.id,
+          match: "Secret Toymaker",
+          isPrimary: data.isPrimary,
+          reported: data.reported,
+          received: data.received,
+          initialized: data.initialized,
+          sent: data.sent,
+        });
       });
     }
 
     if (!outgoingGiftsSnapshot.empty) {
       outgoingGiftsSnapshot.forEach(doc => {
         let data = doc.data();
-        outgoingGifts.push(data);
+
+        // TODO: Replace match with the account name of the giftee
+        outgoingGifts.push({
+          id: doc.id,
+          match: "Secret Toymaker",
+          isPrimary: data.isPrimary,
+          reported: data.reported,
+          received: data.received,
+          initialized: data.initialized,
+          sent: data.sent,
+        });
       });
     }
 

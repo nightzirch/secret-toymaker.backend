@@ -86,7 +86,7 @@ const initializeGift = async (
  * @param {bool} isPrimary - Is this the primary/required gift?
  * @returns {object}
  */
-const updateBatchWithInitialGift = (
+const updateBatchWithInitialGift = async (
   batch,
   toymakerGameAccountUUID,
   gifteeGameAccountUUID,
@@ -106,6 +106,9 @@ const updateBatchWithInitialGift = (
     .collection(CollectionTypes.EVENTS__PARTICIPANTS)
     .doc(gifteeGameAccountUUID);
 
+  let giftee = await gifteeDoc.get();
+  giftee = giftee.data();
+
   let toymakerDoc = eventDoc
     .collection(CollectionTypes.EVENTS__PARTICIPANTS)
     .doc(toymakerGameAccountUUID);
@@ -120,7 +123,8 @@ const updateBatchWithInitialGift = (
     sent: null,
     reported: false,
     toymaker: toymakerDoc,
-    giftee: gifteeDoc
+    giftee: gifteeDoc,
+    notes: giftee.notes
   };
 
   let gifteeData = {

@@ -61,17 +61,19 @@ const matchAllParticipants = async () => {
 
   let batch = db.batch();
 
-  Object.keys(gifteeToymakerRelation).forEach(gifteeGameAccountUUID => {
-    const toymakerGameAccountUUID =
-      gifteeToymakerRelation[gifteeGameAccountUUID];
+  await Promise.all(
+    Object.keys(gifteeToymakerRelation).map(async gifteeGameAccountUUID => {
+      const toymakerGameAccountUUID =
+        gifteeToymakerRelation[gifteeGameAccountUUID];
 
-    updateBatchWithInitialGift(
-      batch,
-      toymakerGameAccountUUID,
-      gifteeGameAccountUUID,
-      true
-    );
-  });
+      await updateBatchWithInitialGift(
+        batch,
+        toymakerGameAccountUUID,
+        gifteeGameAccountUUID,
+        true
+      );
+    })
+  );
 
   const result = await batch
     .commit()
