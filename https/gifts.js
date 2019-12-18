@@ -261,11 +261,12 @@ const getGifts = functions.https.onCall(
 
     let incomingGifts = [];
     let outgoingGifts = [];
+    let outgoingGifteesData = [];
 
     if (!incomingGiftsSnapshot.empty) {
       incomingGiftsSnapshot.forEach(doc => {
         let data = doc.data();
-        
+
         incomingGifts.push({
           id: doc.id,
           match: "Secret Toymaker",
@@ -274,27 +275,36 @@ const getGifts = functions.https.onCall(
           reported: data.reported,
           received: data.received,
           initialized: data.initialized,
-          sent: data.sent,
+          sent: data.sent
         });
       });
     }
 
     if (!outgoingGiftsSnapshot.empty) {
       outgoingGiftsSnapshot.forEach(doc => {
-        let data = doc.data();
-
-        // TODO: Replace match with the account name of the giftee
-        outgoingGifts.push({
-          id: doc.id,
-          match: "Secret Toymaker",
-          notes: data.notes,
-          isPrimary: data.isPrimary,
-          reported: data.reported,
-          received: data.received,
-          initialized: data.initialized,
-          sent: data.sent,
-        });
+        outgoingGifteesData.push(Object.assign({}, doc.data(), { id: doc.id }));
       });
+
+      await Promise.all(
+        outgoingGifteesData.map(async data => {
+          let gifteeDoc = await data.giftee.get();
+
+          if (gifteeDoc.exists) {
+            let giftee = gifteeDoc.data();
+
+            outgoingGifts.push({
+              id: data.id,
+              match: giftee.id,
+              notes: data.notes,
+              isPrimary: data.isPrimary,
+              reported: data.reported,
+              received: data.received,
+              initialized: data.initialized,
+              sent: data.sent
+            });
+          }
+        })
+      );
     }
 
     return {
