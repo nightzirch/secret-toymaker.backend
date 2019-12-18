@@ -6,6 +6,7 @@ This manages initializing, sending, recieving and reporting gifts.
 also has functions to return admin stuff as well
 */
 const functions = require("firebase-functions");
+const admin = require("firebase-admin");
 require("firebase/firestore");
 const { getGameAccountUUID } = require("../utils/utils");
 const { EVENT } = require("../config/constants");
@@ -259,7 +260,9 @@ const getGifts = functions.https.onCall(
       .where("toymaker", "==", participantDoc)
       .get();
 
+    let incomingPrimaryGift;
     let incomingGifts = [];
+    let outgoingPrimaryGift;
     let outgoingGifts = [];
     let outgoingGifteesData = [];
 
@@ -267,7 +270,7 @@ const getGifts = functions.https.onCall(
       incomingGiftsSnapshot.forEach(doc => {
         let data = doc.data();
 
-        incomingGifts.push({
+        const giftData = {
           id: doc.id,
           match: "Secret Toymaker",
           notes: data.notes,
@@ -276,7 +279,13 @@ const getGifts = functions.https.onCall(
           received: data.received,
           initialized: data.initialized,
           sent: data.sent
-        });
+        };
+
+        if (data.isPrimary) {
+          incomingPrimaryGift = giftData;
+        } else {
+          incomingGifts.push(giftData);
+        }
       });
     }
 
@@ -292,7 +301,7 @@ const getGifts = functions.https.onCall(
           if (gifteeDoc.exists) {
             let giftee = gifteeDoc.data();
 
-            outgoingGifts.push({
+            const giftData = {
               id: data.id,
               match: giftee.id,
               notes: data.notes,
@@ -301,7 +310,13 @@ const getGifts = functions.https.onCall(
               received: data.received,
               initialized: data.initialized,
               sent: data.sent
-            });
+            };
+
+            if (data.isPrimary) {
+              outgoingPrimaryGift = giftData;
+            } else {
+              outgoingGifts.push(giftData);
+            }
           }
         })
       );
@@ -309,7 +324,9 @@ const getGifts = functions.https.onCall(
 
     return {
       success: {
+        outgoingPrimary: outgoingPrimaryGift,
         outgoing: outgoingGifts,
+        incomingPrimary: incomingPrimaryGift,
         incoming: incomingGifts
       }
     };
