@@ -269,6 +269,7 @@ const getGifts = functions.https.onCall(
         incomingGifts.push({
           id: doc.id,
           match: "Secret Toymaker",
+          notes: data.notes,
           isPrimary: data.isPrimary,
           reported: data.reported,
           received: data.received,
@@ -286,6 +287,7 @@ const getGifts = functions.https.onCall(
         outgoingGifts.push({
           id: doc.id,
           match: "Secret Toymaker",
+          notes: data.notes,
           isPrimary: data.isPrimary,
           reported: data.reported,
           received: data.received,
