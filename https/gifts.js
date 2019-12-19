@@ -11,6 +11,8 @@ require("firebase/firestore");
 const { getGameAccountUUID } = require("../utils/utils");
 const { EVENT } = require("../config/constants");
 const db = require("../config/db");
+const { initializeGift } = require("../utils/initializeGift");
+const { getRandomFromArray } = require("../utils/random");
 
 /**
  * @namespace updateGiftSentStatus
@@ -226,6 +228,159 @@ const updateGiftReportedStatus = functions.https.onCall(
 );
 
 /**
+ * @namespace donateGift
+ * @return {donateGift~inner} - the returned function
+ */
+const donateGift = functions.https.onCall(
+  /**
+   * Initializes a new donation gift
+   * @inner
+   * @param {object} data - details about the giftee
+   * @param {string} data.user - user object or uid
+   * @returns {Result}
+   */
+  async ({ user }) => {
+    let gameAccountUUID = await getGameAccountUUID(user);
+    if (gameAccountUUID.error) {
+      return { error: "no API key set" };
+    }
+
+    gameAccountUUID = gameAccountUUID.success;
+
+    let eventDoc = db.collection(CollectionTypes.EVENTS).doc(EVENT);
+
+    let participationDoc = eventDoc
+      .collection(CollectionTypes.EVENTS__PARTICIPANTS)
+      .doc(gameAccountUUID);
+
+    let participation = await participationDoc.get();
+
+    if (!participation.exists) {
+      return { error: "User is not participating" };
+    }
+
+    let { outgoingGifts } = participation.data();
+
+    if (outgoingGifts && outgoingGifts.length === 0) {
+      return { error: "No outgoing gifts registered." };
+    }
+
+    let allGiftsAreSent = true;
+    let allParticipantGiftees = [];
+    let giftee;
+
+    await Promise.all(
+      outgoingGifts.map(async giftDoc => {
+        let gift = await giftDoc.get();
+
+        if (gift.exists) {
+          gift = gift.data();
+          allParticipantGiftees.push(gift.gifteeGameAccountUUID);
+
+          if (!gift.sent) {
+            allGiftsAreSent = false;
+          }
+        }
+      })
+    );
+
+    if (!allGiftsAreSent) {
+      return { error: "Not all outoging gifts are sent." };
+    }
+
+    let notSentGifts = await eventDoc
+      .collection(CollectionTypes.EVENTS__GIFTS)
+      .where("isPrimary", "==", true)
+      .where("sent", "==", null)
+      .get();
+
+    if (notSentGifts.empty) {
+      // If all primary gifts are sent, let's go for not received donations
+      notSentGifts = await eventDoc
+        .collection(CollectionTypes.EVENTS__GIFTS)
+        .where("isPrimary", "==", false)
+        .where("sent", "==", null)
+        .get();
+    }
+
+    if (notSentGifts.empty) {
+      // If all donation gifts are sent, let's go for a random participant
+      let allParticipants = await eventDoc
+        .collection(CollectionTypes.EVENTS__PARTICIPANTS)
+        .where("isFreeToPlay", "==", false)
+        .get();
+
+      if (allParticipants.empty) {
+        return { error: "Could not find any participants" };
+      }
+
+      let allParticipantsData = [];
+
+      allParticipants.forEach(doc => {
+        let participantData = doc.data();
+        if (
+          participantData.gameAccountUUID !== gameAccountUUID &&
+          !allParticipantGiftees.includes(participantData.gameAccountUUID)
+        ) {
+          allParticipantsData.push(participantData);
+        }
+      });
+
+      giftee = getRandomFromArray(allParticipantsData);
+    }
+
+    if (giftee) {
+      const initializeGiftResponse = await initializeGift(
+        gameAccountUUID,
+        giftee.gameAccountUUID
+      );
+
+      if (initializeGiftResponse.success) {
+        return { success: "Successfully updated gift's reported status." };
+      } else {
+        return {
+          error: "Could not initialize donation gift.",
+          trace: initializeGiftResponse.error
+        };
+      }
+    }
+
+    let allGiftsData = [];
+
+    notSentGifts.forEach(doc => {
+      let giftData = doc.data();
+      let { gifteeGameAccountUUID } = giftData;
+      if (
+        gifteeGameAccountUUID !== gameAccountUUID &&
+        !allParticipantGiftees.includes(gifteeGameAccountUUID)
+      ) {
+        allGiftsData.push(giftData);
+      }
+    });
+
+    let randomGift = getRandomFromArray(allGiftsData);
+
+    if (randomGift) {
+      const initializeGiftResponse = await initializeGift(
+        gameAccountUUID,
+        randomGift.gifteeGameAccountUUID
+      );
+
+      if (initializeGiftResponse.success) {
+        return { success: "Successfully updated gift's reported status." };
+      } else {
+        return {
+          error: "Could not initialize donation gift.",
+          trace: initializeGiftResponse.error
+        };
+      }
+    }
+
+    return { error: "Could not initialize donation gift." };
+  }
+);
+
+/**
  * @namespace getGifts
  * @return {getGifts~inner} - the returned function
  */
@@ -335,6 +490,7 @@ const getGifts = functions.https.onCall(
 
 module.exports = {
   getGifts,
+  donateGift,
   updateGiftSentStatus,
   updateGiftReceivedStatus,
   updateGiftReportedStatus

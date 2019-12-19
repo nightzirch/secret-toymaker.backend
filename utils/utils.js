@@ -130,7 +130,7 @@ const volunteerForNewGiftees = async (user, count) => {
 
   // check to see if said user has sent their initial gift
   let sent = await eventDoc
-    .collection(CollectionTypes.EVENT__PARTICIPANTS)
+    .collection(CollectionTypes.EVENTS__PARTICIPANTS)
     .doc(gameAccountUUID)
     .get();
 
@@ -149,7 +149,7 @@ const volunteerForNewGiftees = async (user, count) => {
 
   // now get list of peoople who havent gotten a goft
   let noGift = await eventDoc
-    .collection(CollectionTypes.EVENT__PARTICIPANTS)
+    .collection(CollectionTypes.EVENTS__PARTICIPANTS)
     .where("received", "==", false)
     .get();
 
@@ -182,7 +182,7 @@ const volunteerForNewGiftees = async (user, count) => {
     if (i >= count) break;
     // update said user accounts with new gifter
     let reference = eventDoc
-      .collection(CollectionTypes.EVENT__PARTICIPANTS)
+      .collection(CollectionTypes.EVENTS__PARTICIPANTS)
       .doc(resultsArray[i].participant);
 
     // this onlky needs a monor change to setup teh third round of gifting
@@ -241,7 +241,7 @@ async function markGifteeAccount(
   const eventDoc = db.collection(CollectionTypes.EVENTS).doc(EVENT);
 
   let currentValueRaw = await eventDoc
-    .collection(CollectionTypes.EVENT__PARTICIPANTS)
+    .collection(CollectionTypes.EVENTS__PARTICIPANTS)
     .doc(gameAccountUUID)
     .get();
     
@@ -260,7 +260,7 @@ async function markGifteeAccount(
   }
 
   let entryResult = await eventDoc
-    .collection(CollectionTypes.EVENT__PARTICIPANTS)
+    .collection(CollectionTypes.EVENTS__PARTICIPANTS)
     .doc(gameAccountUUID)
     .set(tmp, { merge: true })
     .then(() => {
@@ -314,7 +314,7 @@ async function markGw2Account({ gifterGameAccountUUID, user, field, value }) {
     let entryResult = await db
       .collection(CollectionTypes.EVENTS)
       .doc(EVENT)
-      .collection(CollectionTypes.EVENT__PARTICIPANTS)
+      .collection(CollectionTypes.EVENTS__PARTICIPANTS)
       .doc(gameAccountUUID.success)
       .get()
       .data();
