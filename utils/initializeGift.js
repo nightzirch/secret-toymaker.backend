@@ -46,7 +46,9 @@ const initializeGift = async (
       sent: null,
       reported: false,
       toymaker: toymakerDoc,
-      giftee: gifteeDoc
+      toymakerGameAccountUUID,
+      giftee: gifteeDoc,
+      gifteeGameAccountUUID
     })
     .then(() => true)
     .catch(() => false);
@@ -123,7 +125,9 @@ const updateBatchWithInitialGift = async (
     sent: null,
     reported: false,
     toymaker: toymakerDoc,
+    toymakerGameAccountUUID,
     giftee: gifteeDoc,
+    gifteeGameAccountUUID,
     notes: giftee.notes
   };
 
