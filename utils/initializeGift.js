@@ -31,6 +31,14 @@ const initializeGift = async (
     .collection(CollectionTypes.EVENTS__PARTICIPANTS)
     .doc(gifteeGameAccountUUID);
 
+  let giftee = await gifteeDoc.get();
+
+  if(!giftee.exists) {
+    return { error: "Giftee does not exist." };
+  }
+
+  giftee = giftee.data();
+
   let toymakerDoc = eventDoc
     .collection(CollectionTypes.EVENTS__PARTICIPANTS)
     .doc(toymakerGameAccountUUID);
@@ -48,7 +56,8 @@ const initializeGift = async (
       toymaker: toymakerDoc,
       toymakerGameAccountUUID,
       giftee: gifteeDoc,
-      gifteeGameAccountUUID
+      gifteeGameAccountUUID,
+      notes: giftee.notes
     })
     .then(() => true)
     .catch(() => false);
