@@ -1,1 +1,9 @@
+# folders
 node_modules/
+.idea/
+
+# files
+*.silver.*
+firebase-debug.log
+functions/testing.js
+config/app-engine-service-account-key.json
