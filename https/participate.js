@@ -89,7 +89,7 @@ const participate = functions.https.onCall(
       .collection(CollectionTypes.EVENTS__PARTICIPANTS)
       .doc(gameAccountUUID);
 
-    let participationSnap = await participantDoc.get();
+    let participationSnap = await participationDoc.get();
     if (participationSnap.exists) {
       // Already added. Let's update
       const participationUpdateResult = await participationDoc
