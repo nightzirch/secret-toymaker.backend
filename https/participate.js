@@ -83,14 +83,20 @@ const participate = functions.https.onCall(
     }
 
     // check if already exists
-    let currentValueRaw = await db
+    let participationDoc = db
       .collection(CollectionTypes.EVENTS)
       .doc(EVENT)
       .collection(CollectionTypes.EVENTS__PARTICIPANTS)
-      .doc(gameAccountUUID)
-      .get();
-    if (currentValueRaw.exists) {
-      return { success: "Already added" };
+      .doc(gameAccountUUID);
+
+    let participationSnap = await participationDoc.get();
+    if (participationSnap.exists) {
+      // Already added. Let's update
+      const participationUpdateResult = await participationDoc
+        .update({ notes })
+        .then(() => ({ success: "Successfully updated participant." }))
+        .catch(error => ({ error: "Failed to update.", trace: error }));
+      return participationUpdateResult;
     }
 
     let gameAccount = await getGw2Account(gameAccountUUID);
