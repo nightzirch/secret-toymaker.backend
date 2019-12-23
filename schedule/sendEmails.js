@@ -57,10 +57,13 @@ const sendSignupStarts = functions.pubsub.schedule("1 * * * *").onRun(
     const participantsWithConsent = participantsWithConsentResponse.success;
 
     // TODO: Create the template and add data.
+    // TODO: Change so we send individual emails so we can use variables.
     const response = await sendEmailTemplate({
       userIds: participantsWithConsent.map(p => p.uid),
       templateName: "signupStart",
-      templateData: {}
+      templateData: {
+        year: EVENT
+      }
     });
 
     if (response.success) {
