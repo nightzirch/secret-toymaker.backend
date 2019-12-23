@@ -5,7 +5,10 @@ const CollectionTypes = require("../utils/types/CollectionTypes");
 const { getCurrentStage } = require("../utils/getCurrentStage");
 const { StageTypes } = require("../config/constants");
 const db = require("../config/db");
-
+const {
+  filterParticipantsConsentsByEventDoc,
+  sendEmailTemplate
+} = require("../utils/email");
 
 /**
  * @namespace sendSignupStarts
@@ -18,7 +21,73 @@ const sendSignupStarts = functions.pubsub.schedule("1 * * * *").onRun(
    * @param {object} [context] - This is used by firebase, no idea what it does, I think its added automatically
    * @returns {undefined}
    */
-  async context => {}
+  async context => {
+    const currentStage = await getCurrentStage();
+
+    if (currentStage.type !== StageTypes.SIGNUP) {
+      return {
+        success: `Not in signup stage. Skipping sending emails. Current stage is ${currentStage.type}`
+      };
+    }
+
+    const eventDoc = db.collection(CollectionTypes.EVENTS).doc(EVENT);
+    const eventSnap = await eventDoc.get();
+
+    if (!eventSnap.exists) {
+      return { error: "Could not find event." };
+    }
+
+    const event = eventSnap.data();
+    const { emails } = event;
+
+    if (emails.signupStart) {
+      return { success: "Emails for signing up are already sent." };
+    }
+
+    const participantsWithConsentResponse = await filterParticipantsConsentsByEventDoc(
+      "emailFutureEvents",
+      eventDoc
+    );
+    if (participantsWithConsentResponse.error) {
+      return {
+        error: "Failed to get participants with consents.",
+        trace: participantsWithConsentResponse.error
+      };
+    }
+    const participantsWithConsent = participantsWithConsentResponse.success;
+
+    // TODO: Create the template and add data.
+    const response = await sendEmailTemplate({
+      userIds: participantsWithConsent.map(p => p.uid),
+      templateName: "signupStart",
+      templateData: {}
+    });
+
+    if (response.success) {
+      const emailsStatusUpdateResponse = await eventDoc
+        .update({
+          emails: Object.assign({}, emails, { signupStart: true })
+        })
+        .then(() => ({ success: "Successfully updated emails's sent state." }))
+        .catch(error => ({
+          error: "Failed to update emails' sent state.",
+          trace: error
+        }));
+
+      if (emailsStatusUpdateResponse.success) {
+        return { success: "Successfully sent emails for signing up." };
+      }
+      return {
+        error: "Could not  sent emails for signing up.",
+        trace: emailsStatusUpdateResponse.error
+      };
+    } else {
+      return {
+        error: "Could nnot send emails for signing up.",
+        trace: response.error
+      };
+    }
+  }
 );
 
 /**
@@ -63,4 +132,9 @@ const sendEventEnd = functions.pubsub.schedule("1 * * * *").onRun(
   async context => {}
 );
 
-module.exports = { sendSignupStarts, sendSignupReminder, sendEventStarts, sendEventEnd };
+module.exports = {
+  sendSignupStarts,
+  sendSignupReminder,
+  sendEventStarts,
+  sendEventEnd
+};
