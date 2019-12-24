@@ -54,7 +54,7 @@ const sendEmail = ({ emailAddress, userIds, subject, message }) => {
 
   if (emailAddress) {
     data.to = emailAddress;
-  } else if (userId) {
+  } else if (userIds) {
     data.toUids = userIds;
   }
 
@@ -81,7 +81,7 @@ const sendEmailTemplate = ({
 
   if (emailAddress) {
     data.to = emailAddress;
-  } else if (userId) {
+  } else if (userIds) {
     data.toUids = userIds;
   }
 
