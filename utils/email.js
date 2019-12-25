@@ -17,7 +17,7 @@ const filterParticipantsConsentsByEventDoc = async (consentKey, eventDoc) => {
   const participants = [];
   participantsSnap.forEach(p => {
     const data = p.data();
-    participants.push(Object.assign({}, data, { uid: p.id }));
+    participants.push(data);
   });
 
   const toymakersDoc = db.collection(CollectionTypes.TOYMAKERS);
@@ -35,12 +35,20 @@ const filterParticipantsConsentsByEventDoc = async (consentKey, eventDoc) => {
     toymakers.push(data);
   });
 
-  const participantsWithConsent = participants.filter(p =>
-    toymakers
-      .filter(t => t.consents && t.consents[consentKey])
-      .map(t => t.uid)
-      .includes(p.uid)
-  );
+  const participantsWithConsent = participants
+    .map(p =>
+      Object.assign({}, p, {
+        uid: (
+          toymakers.find(t => t.gameAccountUUID === p.gameAccountUUID) || {}
+        ).uid
+      })
+    )
+    .filter(p =>
+      toymakers
+        .filter(t => t.consents && t.consents[consentKey])
+        .map(t => t.gameAccountUUID)
+        .includes(p.gameAccountUUID)
+    );
 
   return { success: participantsWithConsent };
 };
