@@ -6,6 +6,7 @@ const { getCurrentStage } = require("../utils/getCurrentStage");
 const { StageTypes } = require("../config/constants");
 const { db } = require("../config/firebase");
 const {
+  filterToymakersConsents,
   filterParticipantsConsentsByEventDoc,
   sendEmailTemplate
 } = require("../utils/email");
@@ -127,25 +128,22 @@ const sendSignupReminder = functions.pubsub.schedule("1 * * * *").onRun(
       return { success: "Emails for reminding signing up are already sent." };
     }
 
-    const participantsWithConsentResponse = await filterParticipantsConsentsByEventDoc(
-      null,
-      eventDoc
-    );
-    if (participantsWithConsentResponse.error) {
+    const toymakersWithConsentResponse = await filterToymakersConsents(null);
+    if (toymakersWithConsentResponse.error) {
       return {
         error: "Failed to get participants with consents.",
-        trace: participantsWithConsentResponse.error
+        trace: toymakersWithConsentResponse.error
       };
     }
-    const participantsWithConsent = participantsWithConsentResponse.success;
+    const toymakersWithConsent = toymakersWithConsentResponse.success;
 
     const response = await Promise.all(
-      participantsWithConsent.map(p =>
+      toymakersWithConsent.map(t =>
         sendEmailTemplate({
-          userIds: [p.uid],
+          userIds: [t.uid],
           templateName: "signupReminder",
           templateData: {
-            username: p.id,
+            username: t.name || "toymaker",
             year: EVENT
           }
         })

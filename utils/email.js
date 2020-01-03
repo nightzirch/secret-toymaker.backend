@@ -2,6 +2,29 @@ const { db } = require("../config/firebase");
 const { mailgunConfig } = require("../config/mailgun");
 const CollectionTypes = require("../utils/types/CollectionTypes");
 
+const filterToymakersConsents = async consentKey => {
+  const toymakersDoc = db.collection(CollectionTypes.TOYMAKERS);
+  const toymakersSnap = await toymakersDoc.get();
+
+  if (toymakersSnap.empty) {
+    return {
+      error: "No toymakers to send emails to found."
+    };
+  }
+
+  let toymakers = [];
+  toymakersSnap.forEach(t => {
+    const data = t.data();
+    toymakers.push(data);
+  });
+
+  const toymakersWithConsent = toymakers.filter(t =>
+    !consentKey ? true : t.consents && t.consents[consentKey]
+  );
+
+  return { success: toymakersWithConsent };
+};
+
 const filterParticipantsConsentsByEventDoc = async (consentKey, eventDoc) => {
   const participantsDoc = eventDoc.collection(
     CollectionTypes.EVENTS__PARTICIPANTS
@@ -103,6 +126,7 @@ const sendEmailTemplate = ({
 };
 
 module.exports = {
+  filterToymakersConsents,
   filterParticipantsConsentsByEventDoc,
   sendEmail,
   sendEmailTemplate
