@@ -139,13 +139,28 @@ const sendSignupReminder = functions.pubsub.schedule("1 * * * *").onRun(
     }
     const participantsWithConsent = participantsWithConsentResponse.success;
 
-    const response = await sendEmailTemplate({
-      userIds: participantsWithConsent.map(p => p.uid),
-      templateName: "signupReminder",
-      templateData: {
-        year: EVENT
-      }
-    });
+    let response;
+
+    Promise.all(
+      participantsWithConsent.map(p =>
+        sendEmailTemplate({
+          userIds: [p.uid],
+          templateName: "signupReminder",
+          templateData: {
+            username: p.username,
+            year: EVENT
+          }
+        })
+      )
+    )
+      .then(responses => {
+        response = responses[0];
+        return response;
+      })
+      .catch(e => {
+        response = responses[0];
+        return response;
+      });
 
     if (response.success) {
       const emailsStatusUpdateResponse = await eventDoc
