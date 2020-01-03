@@ -97,14 +97,81 @@ const sendSignupStarts = functions.pubsub.schedule("1 * * * *").onRun(
  * @namespace sendSignupReminder
  * @return {sendSignupReminder~inner} - returns a scheduled function that runs 1 minute past every hour.
  */
-const sendSignupReminder = functions.pubsub.schedule("1 * * * *").onRun(
+const sendSignupReminder = functions.pubsub.schedule("20 * * * *").onRun(
   /**
    * Sends an email to everyone who registered at the site, but who are not participating in the current event.
    * @inner
    * @param {object} [context] - This is used by firebase, no idea what it does, I think its added automatically
    * @returns {undefined}
    */
-  async context => {}
+  async context => {
+    const currentStage = await getCurrentStage();
+
+    if (currentStage.type !== StageTypes.SIGNUP) {
+      return {
+        success: `Not in signup stage. Skipping sending emails. Current stage is ${currentStage.type}`
+      };
+    }
+
+    const eventDoc = db.collection(CollectionTypes.EVENTS).doc(EVENT);
+    const eventSnap = await eventDoc.get();
+
+    if (!eventSnap.exists) {
+      return { error: "Could not find event." };
+    }
+
+    const event = eventSnap.data();
+    const { emails } = event;
+
+    if (emails.signupReminder) {
+      return { success: "Emails for reminding signing up are already sent." };
+    }
+
+    const participantsWithConsentResponse = await filterParticipantsConsentsByEventDoc(
+      null,
+      eventDoc
+    );
+    if (participantsWithConsentResponse.error) {
+      return {
+        error: "Failed to get participants with consents.",
+        trace: participantsWithConsentResponse.error
+      };
+    }
+    const participantsWithConsent = participantsWithConsentResponse.success;
+
+    const response = await sendEmailTemplate({
+      userIds: participantsWithConsent.map(p => p.uid),
+      templateName: "signupReminder",
+      templateData: {
+        year: EVENT
+      }
+    });
+
+    if (response.success) {
+      const emailsStatusUpdateResponse = await eventDoc
+        .update({
+          emails: Object.assign({}, emails, { signupReminder: true })
+        })
+        .then(() => ({ success: "Successfully updated emails's sent state." }))
+        .catch(error => ({
+          error: "Failed to update emails' sent state.",
+          trace: error
+        }));
+
+      if (emailsStatusUpdateResponse.success) {
+        return { success: "Successfully sent emails reminding to sign up." };
+      }
+      return {
+        error: "Could not send emails reminding to sign up.",
+        trace: emailsStatusUpdateResponse.error
+      };
+    } else {
+      return {
+        error: "Could not send emails reminding to sign up.",
+        trace: response.error
+      };
+    }
+  }
 );
 
 /**

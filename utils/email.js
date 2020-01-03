@@ -45,7 +45,9 @@ const filterParticipantsConsentsByEventDoc = async (consentKey, eventDoc) => {
     )
     .filter(p =>
       toymakers
-        .filter(t => t.consents && t.consents[consentKey])
+        .filter(t =>
+          !consentKey ? true : t.consents && t.consents[consentKey]
+        )
         .map(t => t.gameAccountUUID)
         .includes(p.gameAccountUUID)
     );
