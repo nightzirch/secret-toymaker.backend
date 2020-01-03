@@ -19,6 +19,7 @@ const {
   getReported,
   getStats
 } = require("./https/stats");
+const { sendSignupStarts, sendSignupReminder, sendEventStarts, sendEventEnd} = require("./schedule/sendEmails");
 const { setMatches } = require("./schedule/setMatches");
 
 // Alerts
@@ -40,6 +41,12 @@ exports.assignedGiftees = assignedGiftees;
 exports.volunteer = volunteer;
 exports.getStats = getStats;
 exports.participateStatus = participateStatus;
+
+// Scheduled function for sending emails
+exports.sendSignupStarts = sendSignupStarts;
+exports.sendSignupReminder = sendSignupReminder;
+exports.sendEventStarts = sendEventStarts;
+exports.sendEventEnd = sendEventEnd;
 
 // Scheduled function for setting matches
 exports.setMatches = setMatches;

@@ -1,7 +1,7 @@
 require("firebase/firestore");
 const CollectionTypes = require("../utils/types/CollectionTypes");
 
-const db = require("../config/db");
+const { db } = require("../config/firebase");
 const { EVENT } = require("../config/constants");
 
 const {

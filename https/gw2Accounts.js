@@ -5,7 +5,7 @@ THis manages everything account related sugh as adding api keys, nots, getting t
 */
 const functions = require("firebase-functions");
 const rp = require("request-promise-native");
-const db = require("../config/db");
+const { db } = require("../config/firebase");
 const {
   getGameAccountUUID,
   volunteerForNewGiftees
