@@ -139,9 +139,7 @@ const sendSignupReminder = functions.pubsub.schedule("1 * * * *").onRun(
     }
     const participantsWithConsent = participantsWithConsentResponse.success;
 
-    let response;
-
-    Promise.all(
+    const response = await Promise.all(
       participantsWithConsent.map(p =>
         sendEmailTemplate({
           userIds: [p.uid],
@@ -153,14 +151,8 @@ const sendSignupReminder = functions.pubsub.schedule("1 * * * *").onRun(
         })
       )
     )
-      .then(responses => {
-        response = responses[0];
-        return response;
-      })
-      .catch(e => {
-        response = responses[0];
-        return response;
-      });
+      .then(responses => responses[0])
+      .catch(e => ({ error: "Failed to send emails", trace: e }));
 
     if (response.success) {
       const emailsStatusUpdateResponse = await eventDoc
