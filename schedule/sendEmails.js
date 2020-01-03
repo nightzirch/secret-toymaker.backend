@@ -145,7 +145,7 @@ const sendSignupReminder = functions.pubsub.schedule("1 * * * *").onRun(
           userIds: [p.uid],
           templateName: "signupReminder",
           templateData: {
-            username: p.username,
+            username: p.id,
             year: EVENT
           }
         })
