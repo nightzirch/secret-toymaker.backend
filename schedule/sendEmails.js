@@ -97,7 +97,7 @@ const sendSignupStarts = functions.pubsub.schedule("1 * * * *").onRun(
  * @namespace sendSignupReminder
  * @return {sendSignupReminder~inner} - returns a scheduled function that runs 1 minute past every hour.
  */
-const sendSignupReminder = functions.pubsub.schedule("20 * * * *").onRun(
+const sendSignupReminder = functions.pubsub.schedule("1 * * * *").onRun(
   /**
    * Sends an email to everyone who registered at the site, but who are not participating in the current event.
    * @inner
