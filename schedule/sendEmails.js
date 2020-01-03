@@ -138,16 +138,18 @@ const sendSignupReminder = functions.pubsub.schedule("1 * * * *").onRun(
     const toymakersWithConsent = toymakersWithConsentResponse.success;
 
     const response = await Promise.all(
-      toymakersWithConsent.map(t =>
-        sendEmailTemplate({
-          userIds: [t.uid],
-          templateName: "signupReminder",
-          templateData: {
-            username: t.name || "toymaker",
-            year: EVENT
-          }
-        })
-      )
+      toymakersWithConsent
+        .filter(t => t.uid && t.email)
+        .map(t =>
+          sendEmailTemplate({
+            userIds: [t.uid],
+            templateName: "signupReminder",
+            templateData: {
+              username: t.name || "toymaker",
+              year: EVENT
+            }
+          })
+        )
     )
       .then(responses => responses[0])
       .catch(e => ({ error: "Failed to send emails", trace: e }));
