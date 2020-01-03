@@ -114,6 +114,8 @@ const sendSignupReminder = functions.pubsub.schedule("1 * * * *").onRun(
       };
     }
 
+    // TODO: Check if we're less than a few days (3? A week?) before signup closes.
+
     const eventDoc = db.collection(CollectionTypes.EVENTS).doc(EVENT);
     const eventSnap = await eventDoc.get();
 
@@ -128,7 +130,7 @@ const sendSignupReminder = functions.pubsub.schedule("1 * * * *").onRun(
       return { success: "Emails for reminding signing up are already sent." };
     }
 
-    const toymakersWithConsentResponse = await filterToymakersConsents(null);
+    const toymakersWithConsentResponse = await filterToymakersConsents("emailEventUpdates");
     if (toymakersWithConsentResponse.error) {
       return {
         error: "Failed to get participants with consents.",
