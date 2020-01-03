@@ -10,7 +10,7 @@ const admin = require("firebase-admin");
 require("firebase/firestore");
 const { getGameAccountUUID } = require("../utils/utils");
 const { EVENT } = require("../config/constants");
-const db = require("../config/db");
+const { db } = require("../config/firebase");
 const { initializeGift } = require("../utils/initializeGift");
 const { getRandomFromArray } = require("../utils/random");
 

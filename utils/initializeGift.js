@@ -1,6 +1,6 @@
 const admin = require("firebase-admin");
 require("firebase/firestore");
-const db = require("../config/db");
+const { db } = require("../config/firebase");
 const { EVENT } = require("../config/constants");
 const CollectionTypes = require("../utils/types/CollectionTypes");
 

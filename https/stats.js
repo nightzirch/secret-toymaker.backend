@@ -9,7 +9,7 @@ const functions = require("firebase-functions");
 require("firebase/firestore");
 const { getGeneralQueries } = require("../utils/utils");
 const { EVENT } = require("../config/constants");
-const db = require("../config/db");
+const { db } = require("../config/firebase");
 
 /**
  * @namespace getNotSent

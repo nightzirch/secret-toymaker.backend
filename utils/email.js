@@ -1,4 +1,4 @@
-const db = require("../config/db");
+const { db } = require("../config/firebase");
 const { mailgunConfig } = require("../config/mailgun");
 const CollectionTypes = require("../utils/types/CollectionTypes");
 
