@@ -72,18 +72,61 @@ async function updateF2P(apiToken) {
   // get gameAccountUUID
   let gameAccountUUID = result.id;
 
-  // add the data to gw2Accounts collection
+  // update the data to gw2Accounts collection
   await db
     .collection(CollectionTypes.GAME_ACCOUNTS)
     .doc(gameAccountUUID)
-    .set({
-      gameAccountUUID,
-      apiToken,
-      lastValid: new Date().toISOString(),
-      isFreeToPlay,
-      id: result.name
-    })
-    .catch(err => console.log(err));
+    .set(
+      {
+        gameAccountUUID,
+        apiToken,
+        lastValid: new Date().toISOString(),
+        isFreeToPlay,
+        id: result.name
+      },
+      { merge: true }
+    )
+    .catch(err => {
+      console.log(err);
+      return { error: "Failed to update gameaccount document.", trace: err };
+    });
+
+  // update the data to toymakers collection
+  await db
+    .collection(CollectionTypes.TOYMAKERS)
+    .doc(user)
+    .set(
+      {
+        apiToken,
+        gameAccountUUID,
+        gameAccount: db
+          .collection(CollectionTypes.GAME_ACCOUNTS)
+          .doc(gameAccountUUID)
+      },
+      { merge: true }
+    )
+    .catch(err => {
+      console.log(err);
+      return { error: "Failed to update toymaker document.", trace: err };
+    });
+
+  // update the data to participant collection
+  await db
+    .collection(CollectionTypes.EVENTS)
+    .doc(EVENT)
+    .collection(CollectionTypes.EVENTS__PARTICIPANTS)
+    .doc(gameAccountUUID)
+    .set(
+      {
+        gameAccountUUID,
+        isFreeToPlay
+      },
+      { merge: true }
+    )
+    .catch(err => {
+      console.log(err);
+      return { error: "Failed to update participation document.", trace: err };
+    });
 
   // return that is is a success
   return { success: "API key added" };
