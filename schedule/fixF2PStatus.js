@@ -78,8 +78,6 @@ async function updateF2P(apiToken) {
     .doc(gameAccountUUID)
     .set(
       {
-        gameAccountUUID,
-        apiToken,
         lastValid: new Date().toISOString(),
         isFreeToPlay,
         id: result.name
@@ -91,25 +89,6 @@ async function updateF2P(apiToken) {
       return { error: "Failed to update gameaccount document.", trace: err };
     });
 
-  // update the data to toymakers collection
-  await db
-    .collection(CollectionTypes.TOYMAKERS)
-    .doc(user)
-    .set(
-      {
-        apiToken,
-        gameAccountUUID,
-        gameAccount: db
-          .collection(CollectionTypes.GAME_ACCOUNTS)
-          .doc(gameAccountUUID)
-      },
-      { merge: true }
-    )
-    .catch(err => {
-      console.log(err);
-      return { error: "Failed to update toymaker document.", trace: err };
-    });
-
   // update the data to participant collection
   await db
     .collection(CollectionTypes.EVENTS)
@@ -118,7 +97,6 @@ async function updateF2P(apiToken) {
     .doc(gameAccountUUID)
     .set(
       {
-        gameAccountUUID,
         isFreeToPlay
       },
       { merge: true }
