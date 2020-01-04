@@ -93,6 +93,8 @@ const matchAllParticipants = async () => {
 
   await Promise.all(
     gifteeToymakerRelationBatches.map(async (gtr, i) => {
+      console.log(`Looping through batch number ${i} with ${Object.keys(gtr).length} participants.`);
+
       await Promise.all(
         Object.keys(gtr).map(async gifteeGameAccountUUID => {
           const toymakerGameAccountUUID = gtr[gifteeGameAccountUUID];
