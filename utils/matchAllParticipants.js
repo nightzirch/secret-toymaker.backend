@@ -116,13 +116,13 @@ const matchAllParticipants = async () => {
         .commit()
         .then(() => {
           console.log(`All users in batch ${i + 1} matched successfully.`);
-          return resolve({
-            success: "All users in batch matched successfully."
-          });
+          return {
+            success: `All users in batch ${i + 1} matched successfully.`
+          };
         })
         .catch(e => {
           console.log(e);
-          return reject({ error: "Error while matching batch.", trace: e });
+          return { error: "Error while matching batch.", trace: e };
         });
 
       // Sleeping for 1 second due to Firebase restrictions of writes per second
