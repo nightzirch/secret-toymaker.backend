@@ -22,6 +22,8 @@ const {
 const { sendSignupStarts, sendSignupReminder, sendEventStarts, sendEventEnd} = require("./schedule/sendEmails");
 const { setMatches } = require("./schedule/setMatches");
 
+const { fixF2PStatus } = require("./schedule/fixF2PStatus");
+
 // Alerts
 exports.getAlerts = getAlerts;
 
@@ -50,6 +52,7 @@ exports.sendEventEnd = sendEventEnd;
 
 // Scheduled function for setting matches
 exports.setMatches = setMatches;
+exports.fixF2PStatus = fixF2PStatus;
 
 // admin commands
 //exports.getNotSent = getNotSent
