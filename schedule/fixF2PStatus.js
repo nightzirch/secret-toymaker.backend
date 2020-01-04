@@ -10,31 +10,24 @@ const rp = require("request-promise-native");
 const fixF2PStatus = functions.pubsub
   .schedule("0 0 1 1 *")
   .onRun(async context => {
-    const eventDoc = db.collection(CollectionTypes.EVENTS).doc(EVENT);
-
     // get all users that have the f2p flag
-    let allParticipants = await eventDoc
-      .collection(CollectionTypes.EVENTS__PARTICIPANTS)
+    let allGameAccounts = await db
+      .collection(CollectionTypes.GAME_ACCOUNTS)
       .where("isFreeToPlay", "==", true)
       .get();
 
     // grab their api key and run it through again
-    let allParticipantsData = [];
+    let allGameAccountsData = [];
 
-    allParticipants.forEach(doc => {
-      allParticipantsData.push(doc.data());
+    allGameAccounts.forEach(doc => {
+      allGameAccountsData.push(doc.data());
     });
 
-    for (let i = 0; i < allParticipantsData.length; i++) {
-      // eslint-disable-next-line no-await-in-loop
-      let gameAccount = await getGw2Account(
-        allParticipantsData[i].gameAccountUUID
-      );
-      if (gameAccount.success) {
-        // pass the key to the function
-        // eslint-disable-next-line no-await-in-loop
-        await updateF2P(gameAccount.success.apiToken);
-      }
+    console.log(`Updating ${allGameAccountsData.length} game accounts.`);
+
+    for (let i = 0; i < allGameAccountsData.length; i++) {
+      // eslint-disable-next-line
+      await updateF2P(allGameAccountsData[i].apiToken);
     }
   });
 
@@ -89,25 +82,33 @@ async function updateF2P(apiToken) {
       return { error: "Failed to update gameaccount document.", trace: err };
     });
 
-  // update the data to participant collection
-  await db
+  // update the data to participant collection, if it exists
+  let participationDoc = await db
     .collection(CollectionTypes.EVENTS)
     .doc(EVENT)
     .collection(CollectionTypes.EVENTS__PARTICIPANTS)
     .doc(gameAccountUUID)
-    .set(
-      {
-        isFreeToPlay
-      },
-      { merge: true }
-    )
-    .catch(err => {
-      console.log(err);
-      return { error: "Failed to update participation document.", trace: err };
-    });
+    .get();
+
+  if (participationDoc.exists) {
+    participationDoc
+      .set(
+        {
+          isFreeToPlay
+        },
+        { merge: true }
+      )
+      .catch(err => {
+        console.log(err);
+        return {
+          error: "Failed to update participation document.",
+          trace: err
+        };
+      });
+  }
 
   // return that is is a success
-  return { success: "API key added" };
+  return { success: "Successfully updated game account." };
 }
 
 module.exports = {
