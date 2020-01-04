@@ -68,11 +68,11 @@ const matchAllParticipants = async () => {
     amountOfParticipants / Math.ceil(amountOfParticipants / DB_MAX_WRITE)
   );
 
-  console.log({
-    amountOfParticipants,
-    amountOfBatches,
-    amountOfParticipantsPerBatch
-  });
+  console.log(
+    `Amount of participants: ${amountOfParticipants}`,
+    `Amount of batches: ${amountOfBatches}`,
+    `Amount of participants per batch: ${amountOfParticipantsPerBatch}`
+  );
 
   for (var i = 0; i < amountOfBatches; i++) {
     batches.push(db.batch());
@@ -83,8 +83,6 @@ const matchAllParticipants = async () => {
     const toymakerGameAccountUUID =
       gifteeToymakerRelation[gifteeGameAccountUUID];
     const batchNo = Math.ceil((i || 1) / amountOfParticipantsPerBatch) - 1;
-
-    console.log({ batchNo, batch: gifteeToymakerRelationBatches[batchNo] });
 
     gifteeToymakerRelationBatches[batchNo][
       gifteeGameAccountUUID
