@@ -33,7 +33,7 @@ const initializeGift = async (
 
   let giftee = await gifteeDoc.get();
 
-  if(!giftee.exists) {
+  if (!giftee.exists) {
     return { error: "Giftee does not exist." };
   }
 
@@ -104,11 +104,13 @@ const updateBatchWithInitialGift = async (
   isPrimary = false
 ) => {
   if (!toymakerGameAccountUUID) {
-    return { error: "no toymakerGameAccountUUID set" };
+    console.log("No toymakerGameAccountUUID set.");
+    return { error: "No toymakerGameAccountUUID set." };
   }
 
   if (!gifteeGameAccountUUID) {
-    return { error: "no gifteeGameAccountUUID set" };
+    console.log("No gifteeGameAccountUUID set.");
+    return { error: "No gifteeGameAccountUUID set." };
   }
 
   let eventDoc = db.collection(CollectionTypes.EVENTS).doc(EVENT);
