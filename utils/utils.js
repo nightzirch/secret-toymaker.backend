@@ -2,7 +2,7 @@ require("firebase/firestore");
 const admin = require("firebase-admin");
 const CollectionTypes = require("../utils/types/CollectionTypes");
 
-const db = require("../config/db");
+const { db } = require("../config/firebase");
 const { EVENT } = require("../config/constants");
 
 /**
