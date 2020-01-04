@@ -82,7 +82,7 @@ const matchAllParticipants = async () => {
   Object.keys(gifteeToymakerRelation).forEach((gifteeGameAccountUUID, i) => {
     const toymakerGameAccountUUID =
       gifteeToymakerRelation[gifteeGameAccountUUID];
-    const batchNo = Math.ceil((i || 1) / amountOfParticipantsPerBatch) - 1;
+    const batchNo = Math.ceil((i + 1) / amountOfParticipantsPerBatch) - 1;
 
     gifteeToymakerRelationBatches[batchNo][
       gifteeGameAccountUUID
