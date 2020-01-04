@@ -115,6 +115,7 @@ const matchAllParticipants = async () => {
           return { success: "All users in batch matched successfully." };
         })
         .catch(e => {
+          console.log(e);
           return { error: "Error while matching batch.", trace: e };
         });
     })
