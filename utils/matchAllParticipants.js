@@ -2,7 +2,8 @@ require("firebase/firestore");
 const CollectionTypes = require("../utils/types/CollectionTypes");
 
 const db = require("../config/db");
-const { EVENT } = require("../config/constants");
+const { DB_MAX_WRITE, EVENT } = require("../config/constants");
+const sleep = require("util").promisify(setTimeout);
 
 const {
   initializeGift,
@@ -59,30 +60,67 @@ const matchAllParticipants = async () => {
     gifteeToymakerRelation[gifteeGameAccountUUID] = toymakerGameAccountUUID;
   });
 
-  let batch = db.batch();
+  let batches = [];
+  let gifteeToymakerRelationBatches = [];
+  let amountOfParticipants = Object.keys(gifteeToymakerRelation).length;
+  let amountOfBatches = Math.ceil(amountOfParticipants / DB_MAX_WRITE);
+  let amountOfParticipantsPerBatch = Math.ceil(
+    amountOfParticipants / Math.ceil(amountOfParticipants / DB_MAX_WRITE)
+  );
+
+  for (var i = 0; i < amountOfBatches; i++) {
+    batches.push(db.batch());
+    gifteeToymakerRelationBatches[i] = {};
+  }
+
+  Object.keys(gifteeToymakerRelation).forEach((gifteeGameAccountUUID, i) => {
+    const toymakerGameAccountUUID =
+      gifteeToymakerRelation[gifteeGameAccountUUID];
+    const batchNo = Math.ceil(i / amountOfParticipantsPerBatch);
+
+    gifteeToymakerRelationBatches[batchNo][
+      gifteeGameAccountUUID
+    ] = toymakerGameAccountUUID;
+  });
+
+  const results = [];
 
   await Promise.all(
-    Object.keys(gifteeToymakerRelation).map(async gifteeGameAccountUUID => {
-      const toymakerGameAccountUUID =
-        gifteeToymakerRelation[gifteeGameAccountUUID];
+    gifteeToymakerRelationBatches.map(async (gtr, i) => {
+      await Promise.all(
+        Object.keys(gtr).map(async gifteeGameAccountUUID => {
+          const toymakerGameAccountUUID = gtr[gifteeGameAccountUUID];
 
-      await updateBatchWithInitialGift(
-        batch,
-        toymakerGameAccountUUID,
-        gifteeGameAccountUUID,
-        true
+          await updateBatchWithInitialGift(
+            batches[i],
+            toymakerGameAccountUUID,
+            gifteeGameAccountUUID,
+            true
+          );
+        })
       );
+
+      // Sleeping for 1 second due to Firebase restrictions of writes per second
+      await sleep(1000);
+
+      results[i] = await batches[i]
+        .commit()
+        .then(() => {
+          return { success: "All users in batch matched successfully." };
+        })
+        .catch(e => {
+          return { error: "Error while matching batch.", trace: e };
+        });
     })
   );
 
-  const result = await batch
-    .commit()
-    .then(() => {
-      return { success: "All users matched successfully." };
-    })
-    .catch(e => {
-      return { error: "Error while matching.", trace: e };
-    });
+  let result = { success: "All users matched successfully." };
+
+  results.forEach(r => {
+    if (r.error) {
+      result = { error: "Error while matching.", trace: r.error };
+    }
+  });
 
   return result;
 };
