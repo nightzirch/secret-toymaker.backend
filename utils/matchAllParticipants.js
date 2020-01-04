@@ -92,45 +92,42 @@ const matchAllParticipants = async () => {
   const results = [];
 
   await Promise.all(
-    gifteeToymakerRelationBatches.map(
-      async (gtr, i) =>
-        new Promise(async (resolve, reject) => {
-          console.log(
-            `Looping through batch number ${i + 1} with ${
-              Object.keys(gtr).length
-            } participants.`
+    gifteeToymakerRelationBatches.map(async (gtr, i) => {
+      console.log(
+        `Looping through batch number ${i + 1} with ${
+          Object.keys(gtr).length
+        } participants.`
+      );
+
+      await Promise.all(
+        Object.keys(gtr).map(async gifteeGameAccountUUID => {
+          const toymakerGameAccountUUID = gtr[gifteeGameAccountUUID];
+
+          await updateBatchWithInitialGift(
+            batches[i],
+            toymakerGameAccountUUID,
+            gifteeGameAccountUUID,
+            true
           );
-
-          await Promise.all(
-            Object.keys(gtr).map(async gifteeGameAccountUUID => {
-              const toymakerGameAccountUUID = gtr[gifteeGameAccountUUID];
-
-              return updateBatchWithInitialGift(
-                batches[i],
-                toymakerGameAccountUUID,
-                gifteeGameAccountUUID,
-                true
-              );
-            })
-          );
-
-          results[i] = await batches[i]
-            .commit()
-            .then(() => {
-              console.log(`All users in batch ${i + 1} matched successfully.`);
-              return resolve({
-                success: "All users in batch matched successfully."
-              });
-            })
-            .catch(e => {
-              console.log(e);
-              return reject({ error: "Error while matching batch.", trace: e });
-            });
-
-          // Sleeping for 1 second due to Firebase restrictions of writes per second
-          await sleep(1000);
         })
-    )
+      );
+
+      results[i] = await batches[i]
+        .commit()
+        .then(() => {
+          console.log(`All users in batch ${i + 1} matched successfully.`);
+          return resolve({
+            success: "All users in batch matched successfully."
+          });
+        })
+        .catch(e => {
+          console.log(e);
+          return reject({ error: "Error while matching batch.", trace: e });
+        });
+
+      // Sleeping for 1 second due to Firebase restrictions of writes per second
+      await sleep(1000);
+    })
   );
 
   let result = { success: "All users matched successfully." };
