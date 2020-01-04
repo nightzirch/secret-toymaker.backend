@@ -95,7 +95,7 @@ const matchAllParticipants = async () => {
     gifteeToymakerRelationBatches.map(async (gtr, i) => {
       new Promise(async (resolve, reject) => {
         console.log(
-          `Looping through batch number ${i} with ${
+          `Looping through batch number ${i + 1} with ${
             Object.keys(gtr).length
           } participants.`
         );
