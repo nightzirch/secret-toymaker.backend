@@ -83,15 +83,16 @@ async function updateF2P(apiToken) {
     });
 
   // update the data to participant collection, if it exists
-  let participationDoc = await db
+  let participationRef = db
     .collection(CollectionTypes.EVENTS)
     .doc(EVENT)
     .collection(CollectionTypes.EVENTS__PARTICIPANTS)
-    .doc(gameAccountUUID)
-    .get();
+    .doc(gameAccountUUID);
+
+  let participationDoc = await participationRef.get();
 
   if (participationDoc.exists) {
-    participationDoc
+    participationRef
       .set(
         {
           isFreeToPlay
