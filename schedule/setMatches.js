@@ -4,7 +4,7 @@ const { EVENT } = require("../config/constants");
 const CollectionTypes = require("../utils/types/CollectionTypes");
 const { getCurrentStage } = require("../utils/getCurrentStage");
 const { StageTypes } = require("../config/constants");
-const db = require("../config/db");
+const { db } = require("../config/firebase");
 const { setMatchingBegun, setMatchingDone } = require("../utils/matching");
 
 /**
