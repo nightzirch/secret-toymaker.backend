@@ -1,5 +1,4 @@
 const functions = require("firebase-functions");
-const { matchAllParticipants } = require("../utils/matchAllParticipants");
 const { EVENT } = require("../config/constants");
 const CollectionTypes = require("../utils/types/CollectionTypes");
 const { getCurrentStage } = require("../utils/getCurrentStage");
@@ -49,6 +48,7 @@ const sendSignupStarts = functions.pubsub.schedule("1 * * * *").onRun(
       "emailFutureEvents",
       eventDoc
     );
+
     if (participantsWithConsentResponse.error) {
       return {
         error: "Failed to get participants with consents.",
@@ -130,7 +130,9 @@ const sendSignupReminder = functions.pubsub.schedule("1 * * * *").onRun(
       return { success: "Emails for reminding signing up are already sent." };
     }
 
-    const toymakersWithConsentResponse = await filterToymakersConsents("emailEventUpdates");
+    const toymakersWithConsentResponse = await filterToymakersConsents(
+      "emailEventUpdates"
+    );
     if (toymakersWithConsentResponse.error) {
       return {
         error: "Failed to get participants with consents.",
@@ -155,6 +157,10 @@ const sendSignupReminder = functions.pubsub.schedule("1 * * * *").onRun(
     )
       .then(responses => responses[0])
       .catch(e => ({ error: "Failed to send emails", trace: e }));
+
+    if (!response) {
+      return { success: "No participants to email." };
+    }
 
     if (response.success) {
       const emailsStatusUpdateResponse = await eventDoc
@@ -194,7 +200,92 @@ const sendEventStarts = functions.pubsub.schedule("1 * * * *").onRun(
    * @param {object} [context] - This is used by firebase, no idea what it does, I think its added automatically
    * @returns {undefined}
    */
-  async context => {}
+  async context => {
+    const currentStage = await getCurrentStage();
+
+    if (currentStage.type !== StageTypes.GIFTING) {
+      return {
+        success: `Not in gifting stage. Skipping sending emails. Current stage is ${currentStage.type}`
+      };
+    }
+
+    const eventDoc = db.collection(CollectionTypes.EVENTS).doc(EVENT);
+    const eventSnap = await eventDoc.get();
+
+    if (!eventSnap.exists) {
+      return { error: "Could not find event." };
+    }
+
+    const event = eventSnap.data();
+    const { emails } = event;
+
+    if (emails.eventStart) {
+      return { success: "Emails for event start are already sent." };
+    }
+
+    const participantsWithConsentResponse = await filterParticipantsConsentsByEventDoc(
+      null,
+      eventDoc
+    );
+
+    if (participantsWithConsentResponse.error) {
+      return {
+        error: "Failed to get participants with consents.",
+        trace: participantsWithConsentResponse.error
+      };
+    }
+    const participantsWithConsent = participantsWithConsentResponse.success;
+
+    const response = await Promise.all(
+      participantsWithConsent
+        .filter(p => p.uid && p.email)
+        .map(p =>
+          sendEmailTemplate({
+            userIds: [p.uid],
+            templateName: "eventStart",
+            templateData: {
+              username: p.name || p.id || "Toymaker",
+              year: EVENT
+            }
+          })
+        )
+    )
+      .then(responses => responses[0])
+      .catch(e => {
+        console.log(e);
+        return { error: "Failed to send emails", trace: e };
+      });
+
+    if (!response) {
+      return { success: "No participants to email." };
+    }
+
+    if (response.success) {
+      const emailsStatusUpdateResponse = await eventDoc
+        .update({
+          emails: Object.assign({}, emails, { eventStart: true })
+        })
+        .then(() => ({ success: "Successfully updated emails's sent state." }))
+        .catch(error => ({
+          error: "Failed to update emails' sent state.",
+          trace: error
+        }));
+
+      if (emailsStatusUpdateResponse.success) {
+        return { success: "Successfully sent emails about event start." };
+      }
+
+      return {
+        error: "Could not send emails about event start.",
+        trace: emailsStatusUpdateResponse.error
+      };
+    } else {
+      return {
+        error: "Could not send emails about event start.",
+        trace: response.error
+      };
+    }
+  }
 );
 
 /**
