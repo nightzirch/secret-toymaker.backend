@@ -230,6 +230,8 @@ const sendEventStarts = functions.pubsub.schedule("1 * * * *").onRun(
     }
     const participantsWithConsent = participantsWithConsentResponse.success;
 
+    console.log("Participants with consent:", participantsWithConsent);
+
     const response = await Promise.all(
       participantsWithConsent
         .filter(p => p.uid && p.email)

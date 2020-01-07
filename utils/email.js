@@ -93,7 +93,7 @@ const sendEmail = ({ emailAddress, userIds, subject, message }) => {
   }
 
   return db
-    .collection("emails")
+    .collection(CollectionTypes.EMAILS)
     .add(data)
     .then(() => ({ success: "Queued email(s) for delivery!" }))
     .catch(error => ({ error: "Error queueing email(s).", trace: error }));
@@ -120,7 +120,7 @@ const sendEmailTemplate = ({
   }
 
   return db
-    .collection("emails")
+    .collection(CollectionTypes.EMAILS)
     .add(data)
     .then(() => ({ success: "Queued email(s) for delivery!" }))
     .catch(error => ({ error: "Error queueing email(s).", trace: error }));

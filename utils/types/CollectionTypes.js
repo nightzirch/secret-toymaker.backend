@@ -1,5 +1,6 @@
 module.exports = {
   ALERTS: "alerts",
+  EMAILS: "emails",
   EVENTS: "events",
   EVENTS__PARTICIPANTS: "participants",
   EVENTS__GIFTS: "gifts",
