@@ -48,7 +48,7 @@ const sendSignupStarts = functions.pubsub.schedule("1 * * * *").onRun(
       "emailFutureEvents",
       eventDoc
     );
-    
+
     if (participantsWithConsentResponse.error) {
       return {
         error: "Failed to get participants with consents.",
@@ -130,7 +130,9 @@ const sendSignupReminder = functions.pubsub.schedule("1 * * * *").onRun(
       return { success: "Emails for reminding signing up are already sent." };
     }
 
-    const toymakersWithConsentResponse = await filterToymakersConsents("emailEventUpdates");
+    const toymakersWithConsentResponse = await filterToymakersConsents(
+      "emailEventUpdates"
+    );
     if (toymakersWithConsentResponse.error) {
       return {
         error: "Failed to get participants with consents.",
@@ -155,6 +157,10 @@ const sendSignupReminder = functions.pubsub.schedule("1 * * * *").onRun(
     )
       .then(responses => responses[0])
       .catch(e => ({ error: "Failed to send emails", trace: e }));
+
+    if (!response) {
+      return { success: "No participants to email." };
+    }
 
     if (response.success) {
       const emailsStatusUpdateResponse = await eventDoc
@@ -221,7 +227,7 @@ const sendEventStarts = functions.pubsub.schedule("1 * * * *").onRun(
       null,
       eventDoc
     );
-    
+
     if (participantsWithConsentResponse.error) {
       return {
         error: "Failed to get participants with consents.",
@@ -244,14 +250,15 @@ const sendEventStarts = functions.pubsub.schedule("1 * * * *").onRun(
           })
         )
     )
-      .then(responses => {
-        console.log("Send email templates responses:", responses);
-        return responses[0]
-      })
+      .then(responses => responses[0])
       .catch(e => {
         console.log(e);
-        return { error: "Failed to send emails", trace: e }
+        return { error: "Failed to send emails", trace: e };
       });
+
+    if (!response) {
+      return { success: "No participants to email." };
+    }
 
     if (response.success) {
       const emailsStatusUpdateResponse = await eventDoc
@@ -267,7 +274,7 @@ const sendEventStarts = functions.pubsub.schedule("1 * * * *").onRun(
       if (emailsStatusUpdateResponse.success) {
         return { success: "Successfully sent emails about event start." };
       }
-      
+
       return {
         error: "Could not send emails about event start.",
         trace: emailsStatusUpdateResponse.error
