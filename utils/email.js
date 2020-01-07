@@ -59,13 +59,14 @@ const filterParticipantsConsentsByEventDoc = async (consentKey, eventDoc) => {
   });
 
   const participantsWithConsent = participants
-    .map(p =>
-      Object.assign({}, p, {
-        uid: (
-          toymakers.find(t => t.gameAccountUUID === p.gameAccountUUID) || {}
-        ).uid
-      })
-    )
+    .map(p => {
+      const toymaker = toymakers.find(t => t.gameAccountUUID === p.gameAccountUUID) || {};
+
+      return Object.assign({}, p, {
+        uid: toymaker.uid,
+        name: toymaker.name
+      });
+    })
     .filter(p =>
       toymakers
         .filter(t =>
