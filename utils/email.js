@@ -95,8 +95,14 @@ const sendEmail = ({ emailAddress, userIds, subject, message }) => {
   return db
     .collection(CollectionTypes.EMAILS)
     .add(data)
-    .then(() => ({ success: "Queued email(s) for delivery!" }))
-    .catch(error => ({ error: "Error queueing email(s).", trace: error }));
+    .then(() => {
+      console.log(`Successfully queued email to ${data.to || data.toUids}.`);
+      return { success: "Queued email(s) for delivery!" }
+    })
+    .catch(error => {
+      console.log(error);
+      return { error: "Error queueing email(s).", trace: error }
+    });
 };
 
 const sendEmailTemplate = async ({
@@ -122,8 +128,14 @@ const sendEmailTemplate = async ({
   return db
     .collection(CollectionTypes.EMAILS)
     .add(data)
-    .then(() => ({ success: "Queued email(s) for delivery!" }))
-    .catch(error => ({ error: "Error queueing email(s).", trace: error }));
+    .then(() => {
+      console.log(`Successfully queued email with template to ${data.to || data.toUids}.`);
+      return { success: "Queued email(s) for delivery!" }
+    })
+    .catch(error => {
+      console.log(error);
+      return { error: "Error queueing email(s).", trace: error }
+    });
 };
 
 module.exports = {
