@@ -60,12 +60,13 @@ const filterParticipantsConsentsByEventDoc = async (consentKey, eventDoc) => {
 
   const participantsWithConsent = participants
     .map(p => {
-      const toymaker = toymakers.find(t => t.gameAccountUUID === p.gameAccountUUID) || {};
+      const toymaker =
+        toymakers.find(t => t.gameAccountUUID === p.gameAccountUUID) || {};
 
       return Object.assign({}, p, {
         email: toymaker.email,
         name: toymaker.name,
-        uid: toymaker.uid,
+        uid: toymaker.uid
       });
     })
     .filter(p =>
@@ -96,13 +97,10 @@ const sendEmail = ({ emailAddress, userIds, subject, message }) => {
   return db
     .collection(CollectionTypes.EMAILS)
     .add(data)
-    .then(() => {
-      console.log(`Successfully queued email to ${data.to || data.toUids}.`);
-      return { success: "Queued email(s) for delivery!" }
-    })
+    .then(() => ({ success: "Queued email(s) for delivery!" }))
     .catch(error => {
       console.log(error);
-      return { error: "Error queueing email(s).", trace: error }
+      return { error: "Error queueing email(s).", trace: error };
     });
 };
 
@@ -129,13 +127,10 @@ const sendEmailTemplate = async ({
   return db
     .collection(CollectionTypes.EMAILS)
     .add(data)
-    .then(() => {
-      console.log(`Successfully queued email with template to ${data.to || data.toUids}.`);
-      return { success: "Queued email(s) for delivery!" }
-    })
+    .then(() => ({ success: "Queued email(s) for delivery!" }))
     .catch(error => {
       console.log(error);
-      return { error: "Error queueing email(s).", trace: error }
+      return { error: "Error queueing email(s).", trace: error };
     });
 };
 
