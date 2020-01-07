@@ -99,7 +99,7 @@ const sendEmail = ({ emailAddress, userIds, subject, message }) => {
     .catch(error => ({ error: "Error queueing email(s).", trace: error }));
 };
 
-const sendEmailTemplate = ({
+const sendEmailTemplate = async ({
   emailAddress,
   userIds,
   templateName,

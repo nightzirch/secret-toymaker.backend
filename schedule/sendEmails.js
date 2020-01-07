@@ -230,8 +230,6 @@ const sendEventStarts = functions.pubsub.schedule("1 * * * *").onRun(
     }
     const participantsWithConsent = participantsWithConsentResponse.success;
 
-    console.log("Participants with consent:", participantsWithConsent);
-
     const response = await Promise.all(
       participantsWithConsent
         .filter(p => p.uid && p.email)
@@ -246,8 +244,14 @@ const sendEventStarts = functions.pubsub.schedule("1 * * * *").onRun(
           })
         )
     )
-      .then(responses => responses[0])
-      .catch(e => ({ error: "Failed to send emails", trace: e }));
+      .then(responses => {
+        console.log("Send email templates responses:", responses);
+        return responses[0]
+      })
+      .catch(e => {
+        console.log(e);
+        return { error: "Failed to send emails", trace: e }
+      });
 
     if (response.success) {
       const emailsStatusUpdateResponse = await eventDoc
@@ -263,6 +267,7 @@ const sendEventStarts = functions.pubsub.schedule("1 * * * *").onRun(
       if (emailsStatusUpdateResponse.success) {
         return { success: "Successfully sent emails about event start." };
       }
+      
       return {
         error: "Could not send emails about event start.",
         trace: emailsStatusUpdateResponse.error
