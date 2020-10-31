@@ -1,0 +1,37 @@
+class Event {
+  /**
+   * @param {date} eventEnd - The end time for this event
+   * @param {date} eventStart - The start time for the event
+   * @param {number} giftsSent - Amount of gifts sent
+   * @param {boolean} isMatchingBegun - Is matching in progress
+   * @param {boolean} isMatchingDone - Is matching done
+   * @param {number} participants - Amount of participants
+   * @param {date} signupStart - The start time for signing up for the event
+   * @param {string} year - The year of the event
+   * @returns {Event}
+   */
+  constructor(
+    eventEnd,
+    eventStart,
+    signupStart,
+    giftsSent,
+    isMatchingBegun,
+    isMatchingDone,
+    participants,
+    year
+  ) {
+    this.eventEnd =
+      typeof eventEnd === "object" ? eventEnd.toISOString() : eventEnd;
+    this.eventStart =
+      typeof eventStart === "object" ? eventStart.toISOString() : eventStart;
+    this.giftsSent = giftsSent || 0;
+    this.isMatchingBegun = isMatchingBegun || false;
+    this.isMatchingDone = isMatchingDone || false;
+    this.participants = participants || 0;
+    this.signupStart =
+      typeof signupStart === "object" ? signupStart.toISOString() : signupStart;
+    this.year = year;
+  }
+}
+
+module.exports = Event;

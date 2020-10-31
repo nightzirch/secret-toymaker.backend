@@ -1,4 +1,5 @@
 const { getAlerts } = require("./https/alerts");
+const { getEvents } = require("./https/events");
 const { stage } = require("./https/stage");
 const { participate, participateStatus } = require("./https/participate");
 const {
@@ -24,6 +25,9 @@ const { setMatches } = require("./schedule/setMatches");
 
 // Alerts
 exports.getAlerts = getAlerts;
+
+// Events
+exports.getEvents = getEvents;
 
 // Gifts
 exports.getGifts = getGifts;

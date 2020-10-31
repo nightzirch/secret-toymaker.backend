@@ -30,7 +30,7 @@
     "url": "https://github.com/nightzirch/secret-toymaker.backend.git"
   },
   "engines": {
-    "node": "10"
+    "node": "12"
   },
   "scripts": {
     "lint": "eslint .",

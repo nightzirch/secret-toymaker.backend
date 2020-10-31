@@ -4,7 +4,7 @@ class Stage {
    * @param {string} year - The year of the event
    * @param {date} start - The start time for this stage
    * @param {date} end - The end time for this stage
-   * @returns 
+   * @returns {Stage}
    */
   constructor(type, year, start, end) {
     this.type = type;
