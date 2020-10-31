@@ -1,8 +1,12 @@
 const CollectionTypes = require("../utils/types/CollectionTypes");
 
-/*
-THis manages everything account related sugh as adding api keys, nots, getting the assigned giftees and volunteering for mroe
-*/
+/**
+ * This manages everything account related such as:
+ * - adding api keys
+ * - notes
+ * - getting the assigned giftees
+ * - volunteering for more gifts
+ */
 const functions = require("firebase-functions");
 const rp = require("request-promise-native");
 const { db } = require("../config/firebase");
