@@ -1,5 +1,8 @@
+const Stage = require("./Stage");
+
 class Event {
   /**
+   * @param {Stage} currentStage - The current stage for this event
    * @param {date} eventEnd - The end time for this event
    * @param {date} eventStart - The start time for the event
    * @param {number} giftsSent - Amount of gifts sent
@@ -11,6 +14,7 @@ class Event {
    * @returns {Event}
    */
   constructor(
+    currentStage,
     eventEnd,
     eventStart,
     signupStart,
@@ -20,6 +24,7 @@ class Event {
     participants,
     year
   ) {
+    this.currentStage = currentStage;
     this.eventEnd =
       typeof eventEnd === "object" ? eventEnd.toISOString() : eventEnd;
     this.eventStart =
@@ -31,6 +36,20 @@ class Event {
     this.signupStart =
       typeof signupStart === "object" ? signupStart.toISOString() : signupStart;
     this.year = year;
+  }
+
+  static fromData(data) {
+    return new Event(
+      Stage.currentfromEventData(data),
+      data.eventEnd.toDate(),
+      data.eventStart.toDate(),
+      data.signupStart.toDate(),
+      data.giftsSent,
+      data.isMatchingBegun,
+      data.isMatchingDone,
+      data.participants,
+      data.year
+    );
   }
 }
 

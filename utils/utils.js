@@ -11,7 +11,6 @@ const { EVENT } = require("../config/constants");
  * @property {string} [success] - Returned if the function is successful
  * @property {string} [error] - Returned if the function fails, contains teh reason for failure
  */
-
 const getCurrentEvent = async () => {
   const events = await db.collection(CollectionTypes.EVENTS).get();
   if (events.empty) {
@@ -33,6 +32,27 @@ const getCurrentEvent = async () => {
   });
 
   return currentEvent;
+};
+
+/**
+ * This is the result object I use that standardises it and allows me to check if it is a success
+ * @typedef {Object} Result
+ * @param {string} year - Year of the event
+ * @property {string} [success] - Returned if the function is successful
+ * @property {string} [error] - Returned if the function fails, contains teh reason for failure
+ */
+const getEvent = async (year) => {
+  const ref = db.collection(CollectionTypes.EVENTS).doc(year);
+  const doc = await ref.get();
+  
+  if (!doc.exists) {
+    return { error: `Cannot find event for year ${year}` };
+  }
+
+  const data = doc.data();
+  const event = Event.fromData(data);
+
+  return { success: event };
 };
 
 /**
@@ -367,6 +387,7 @@ async function markGw2Account({ gifterGameAccountUUID, user, field, value }) {
 
 module.exports = {
   getCurrentEvent,
+  getEvent,
   getGameAccountUUID,
   getGw2Account,
   getGeneralQueries,

@@ -10,21 +10,12 @@ const getAllEvents = async () => {
     return [];
   }
 
-  const events = [];
+  const events = {};
 
   snapshot.forEach((doc) => {
     const data = doc.data();
-    const event = new Event(
-      data.eventEnd.toDate(),
-      data.eventStart.toDate(),
-      data.signupStart.toDate(),
-      data.giftsSent,
-      data.isMatchingBegun,
-      data.isMatchingDone,
-      data.participants,
-      data.year
-    );
-    events.push(event);
+    const event = Event.fromData(data);
+    events[data.year] = event;
   });
 
   return events;
