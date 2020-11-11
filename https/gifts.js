@@ -461,7 +461,8 @@ const getGifts = functions.https.onCall(
           reported: data.reported,
           received: data.received,
           initialized: data.initialized,
-          sent: data.sent
+          sent: data.sent,
+          year
         };
 
         if (data.isPrimary) {
@@ -492,7 +493,8 @@ const getGifts = functions.https.onCall(
               reported: data.reported,
               received: data.received,
               initialized: data.initialized,
-              sent: data.sent
+              sent: data.sent,
+              year
             };
 
             if (data.isPrimary) {
