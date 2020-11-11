@@ -113,6 +113,10 @@ const assignedGiftees = functions.https.onCall(
    * @returns {Result}
    */
   async ({ user, year }, context) => {
+    if(!year) {
+      return { error: "Missing year parameter." };
+    }
+    
     let gifterGameAccountUUID = await getGameAccountUUID(user);
     if (gifterGameAccountUUID.error) {
       return { error: "no API key set" };
@@ -166,6 +170,10 @@ const volunteer = functions.https.onCall(
    * @returns {Result}
    */
   async ({ user, count, year }, context) => {
+    if(!year) {
+      return { error: "Missing year parameter." };
+    }
+    
     return await volunteerForNewGiftees(user, count, year);
   }
 );

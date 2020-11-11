@@ -21,10 +21,15 @@ const getNotSent = functions.https.onCall(
    * @param {object} data
    * @param {number} data.skip - number of entries to skip
    * @param {number} data.limit - number of entries to return
+   * @param {string} year - Year of the event
    * @param {object} [context] - This is used by firebase, no idea what it does, I think its added automatically
    * @returns {Result}
    */
   async ({ skip, limit, year }, context) => {
+    if(!year) {
+      return { error: "Missing year parameter." };
+    }
+    
     return {
       success: await getGeneralQueries("sent_own", "==", false, skip, limit, year)
     };
@@ -47,6 +52,10 @@ const getNotReceived = functions.https.onCall(
    * @returns {Result}
    */
   async ({ skip, limit, year }, context) => {
+    if(!year) {
+      return { error: "Missing year parameter." };
+    }
+    
     return {
       success: await getGeneralQueries("received", "==", false, skip, limit, year)
     };
@@ -69,6 +78,10 @@ const getReported = functions.https.onCall(
    * @returns {Result}
    */
   async ({ skip, limit, year }, context) => {
+    if(!year) {
+      return { error: "Missing year parameter." };
+    }
+    
     return {
       success: await getGeneralQueries("reported", "==", true, skip, limit, year)
     };
@@ -89,6 +102,10 @@ const getStats = functions.https.onCall(
    * @returns {Result}
    */
   async ({ year }, context) => {
+    if(!year) {
+      return { error: "Missing year parameter." };
+    }
+    
     let statsDoc = await db
       .collection(CollectionTypes.EVENTS)
       .doc(year)

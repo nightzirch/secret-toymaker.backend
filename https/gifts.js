@@ -29,6 +29,10 @@ const updateGiftSentStatus = functions.https.onCall(
    * @returns {Result}
    */
   async ({ user, giftId, isSent, year }) => {
+    if(!year) {
+      return { error: "Missing year parameter." };
+    }
+
     let gameAccountUUID = await getGameAccountUUID(user);
     if (gameAccountUUID.error) {
       return { error: "no API key set" };
@@ -101,6 +105,10 @@ const updateGiftReceivedStatus = functions.https.onCall(
    * @returns {Result}
    */
   async ({ user, giftId, isReceived, year }) => {
+    if(!year) {
+      return { error: "Missing year parameter." };
+    }
+
     let gameAccountUUID = await getGameAccountUUID(user);
     if (gameAccountUUID.error) {
       return { error: "no API key set" };
@@ -173,6 +181,10 @@ const updateGiftReportedStatus = functions.https.onCall(
    * @returns {Result}
    */
   async ({ user, giftId, isReporting, reportMessage, year }) => {
+    if(!year) {
+      return { error: "Missing year parameter." };
+    }
+
     let gameAccountUUID = await getGameAccountUUID(user);
     if (gameAccountUUID.error) {
       return { error: "no API key set" };
@@ -243,6 +255,10 @@ const donateGift = functions.https.onCall(
    * @returns {Result}
    */
   async ({ user, year }) => {
+    if(!year) {
+      return { error: "Missing year parameter." };
+    }
+
     let gameAccountUUID = await getGameAccountUUID(user);
     if (gameAccountUUID.error) {
       return { error: "no API key set" };
@@ -401,6 +417,10 @@ const getGifts = functions.https.onCall(
    * @returns {Result}
    */
   async ({ user, year }) => {
+    if(!year) {
+      return { error: "Missing year parameter." };
+    }
+    
     let gameAccountUUID = await getGameAccountUUID(user);
     if (gameAccountUUID.error) {
       return { error: "no API key set" };

@@ -25,6 +25,10 @@ const participate = functions.https.onCall(
    * @returns {Result}
    */
   async ({ user, participate, notes, year }, context) => {
+    if(!year) {
+      return { error: "Missing year parameter." };
+    }
+    
     let gameAccountUUID = await getGameAccountUUID(user);
     if (gameAccountUUID.error) {
       return { error: "no API key set" };
