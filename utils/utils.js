@@ -3,7 +3,6 @@ const admin = require("firebase-admin");
 const CollectionTypes = require("../utils/types/CollectionTypes");
 
 const { db } = require("../config/firebase");
-const { EVENT } = require("../config/constants");
 
 /**
  * This is the result object I use that standardises it and allows me to check if it is a success
@@ -108,12 +107,13 @@ const getGw2Account = async gameAccountUUID => {
  * @param value - This is the value to search for, in most cases it will be boolean
  * @param {number} [skip=0] - For pagination
  * @param {number} [limit=100] - For Pagination
+ * @param {string} year - Year of the event
  * @returns {array} - An array of participation entries
  */
-async function getGeneralQueries(field, comparison, value, skip, limit) {
+async function getGeneralQueries(field, comparison, value, skip, limit, year) {
   //if(typeof skip === "undefined"){skip = 0}
   //if(typeof limit === "undefined"){limit = 100}
-  const eventDoc = db.collection(CollectionTypes.EVENTS).doc(EVENT);
+  const eventDoc = db.collection(CollectionTypes.EVENTS).doc(year);
 
   let result = [];
   let results = await eventDoc
@@ -137,11 +137,12 @@ async function getGeneralQueries(field, comparison, value, skip, limit) {
  * This is used to allow a person to volunteer for n new giftees where n is 1-10
  * @param {string} user - This is the giftee's uid or user object
  * @param {object} count - Number of (new) Giftees teh Gifter is volunteering for
+ * @param {string} year - Year of the event
  * @returns {Result}
  */
-const volunteerForNewGiftees = async (user, count) => {
+const volunteerForNewGiftees = async (user, count, year) => {
   let gameAccountUUID = await getGameAccountUUID(user);
-  const eventDoc = db.collection(CollectionTypes.EVENTS).doc(EVENT);
+  const eventDoc = db.collection(CollectionTypes.EVENTS).doc(year);
 
   if (gameAccountUUID.error) {
     return { error: gameAccountUUID.error };
@@ -226,11 +227,13 @@ const volunteerForNewGiftees = async (user, count) => {
  * @param {string} update.field - What part to mark: sent, received, reported
  * @param {string} [update.message] - If reporting allow a message
  * @param {boolean} [update.value] - If reporting allow a message
+ * @param {string} year - Year of the event
  * @returns {Result}
  */
 async function markGifteeAccount(
   { gameAccountUUID, user },
-  { field, message, value }
+  { field, message, value },
+  year
 ) {
   // if someone is marking the gift sent they know the gameAccountUUID of the giftee
   if (!gameAccountUUID) {
@@ -258,7 +261,7 @@ async function markGifteeAccount(
     value = true;
   }
 
-  const eventDoc = db.collection(CollectionTypes.EVENTS).doc(EVENT);
+  const eventDoc = db.collection(CollectionTypes.EVENTS).doc(year);
 
   let currentValueRaw = await eventDoc
     .collection(CollectionTypes.EVENTS__PARTICIPANTS)
@@ -320,9 +323,10 @@ async function markGifteeAccount(
  * @param {string} [details.user] - If the UUID is unknown this is the giftee's uid or user object
  * @param {string} details.field - What part to mark: sent, received, reported
  * @param {boolean} details.value - If reporting allow a message
+ * @param {string} year - Year of the event
  * @returns {Result}
  */
-async function markGw2Account({ gifterGameAccountUUID, user, field, value }) {
+async function markGw2Account({ gifterGameAccountUUID, user, field, value }, year) {
   // gifter owns teh record
 
   if (!gifterGameAccountUUID) {
@@ -333,7 +337,7 @@ async function markGw2Account({ gifterGameAccountUUID, user, field, value }) {
     let gameAccountUUID = getGameAccountUUID(user);
     let entryResult = await db
       .collection(CollectionTypes.EVENTS)
-      .doc(EVENT)
+      .doc(year)
       .collection(CollectionTypes.EVENTS__PARTICIPANTS)
       .doc(gameAccountUUID.success)
       .get()
@@ -347,7 +351,7 @@ async function markGw2Account({ gifterGameAccountUUID, user, field, value }) {
         .collection(CollectionTypes.GAME_ACCOUNTS)
         .doc(gameAccountUUID.success)
         .collection(CollectionTypes.EVENTS)
-        .doc(EVENT)
+        .doc(year)
         .set(tmp0, { merge: true })
         .then(() => {
           return true;
@@ -368,7 +372,7 @@ async function markGw2Account({ gifterGameAccountUUID, user, field, value }) {
     .collection(CollectionTypes.GAME_ACCOUNTS)
     .doc(gifterGameAccountUUID)
     .collection(CollectionTypes.EVENTS)
-    .doc(EVENT)
+    .doc(year)
     .set(tmp, { merge: true })
     .then(() => {
       return true;

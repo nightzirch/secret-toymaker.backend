@@ -13,9 +13,9 @@ const getAllEvents = async () => {
   const events = {};
 
   snapshot.forEach((doc) => {
-    const data = doc.data();
-    const event = Event.fromData(data);
-    events[data.year] = event;
+    const eventData = doc.data();
+    const event = Event.fromData(eventData);
+    events[eventData.year] = event;
   });
 
   return events;

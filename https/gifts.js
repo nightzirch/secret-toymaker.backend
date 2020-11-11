@@ -9,7 +9,6 @@ const functions = require("firebase-functions");
 const admin = require("firebase-admin");
 require("firebase/firestore");
 const { getGameAccountUUID } = require("../utils/utils");
-const { EVENT } = require("../config/constants");
 const { db } = require("../config/firebase");
 const { initializeGift } = require("../utils/initializeGift");
 const { getRandomFromArray } = require("../utils/random");
@@ -26,15 +25,16 @@ const updateGiftSentStatus = functions.https.onCall(
    * @param {string} data.user - user object or uid
    * @param {string} data.giftId - the uid for the gift
    * @param {bool} data.isSent - if the gift is sent
+   * @param {string} data.year - Year of the event
    * @returns {Result}
    */
-  async ({ user, giftId, isSent }) => {
+  async ({ user, giftId, isSent, year }) => {
     let gameAccountUUID = await getGameAccountUUID(user);
     if (gameAccountUUID.error) {
       return { error: "no API key set" };
     }
 
-    let eventDoc = db.collection(CollectionTypes.EVENTS).doc(EVENT);
+    let eventDoc = db.collection(CollectionTypes.EVENTS).doc(year);
 
     let giftDoc = eventDoc
       .collection(CollectionTypes.EVENTS__GIFTS)
@@ -97,15 +97,16 @@ const updateGiftReceivedStatus = functions.https.onCall(
    * @param {string} data.user - user object or uid
    * @param {string} data.giftId - the uid for the gift
    * @param {bool} data.isReceived - if the gift is received
+   * @param {string} data.year - Year of the event
    * @returns {Result}
    */
-  async ({ user, giftId, isReceived }) => {
+  async ({ user, giftId, isReceived, year }) => {
     let gameAccountUUID = await getGameAccountUUID(user);
     if (gameAccountUUID.error) {
       return { error: "no API key set" };
     }
 
-    let eventDoc = db.collection(CollectionTypes.EVENTS).doc(EVENT);
+    let eventDoc = db.collection(CollectionTypes.EVENTS).doc(year);
 
     let giftDoc = eventDoc
       .collection(CollectionTypes.EVENTS__GIFTS)
@@ -168,15 +169,16 @@ const updateGiftReportedStatus = functions.https.onCall(
    * @param {string} data.giftId - the uid for the gift
    * @param {bool} data.isReporting - if the gift is being reported
    * @param {string} data.reportMessage - reason for reporting
+   * @param {string} data.year - Year of the event
    * @returns {Result}
    */
-  async ({ user, giftId, isReporting, reportMessage }) => {
+  async ({ user, giftId, isReporting, reportMessage, year }) => {
     let gameAccountUUID = await getGameAccountUUID(user);
     if (gameAccountUUID.error) {
       return { error: "no API key set" };
     }
 
-    let eventDoc = db.collection(CollectionTypes.EVENTS).doc(EVENT);
+    let eventDoc = db.collection(CollectionTypes.EVENTS).doc(year);
 
     let giftDoc = eventDoc
       .collection(CollectionTypes.EVENTS__GIFTS)
@@ -237,9 +239,10 @@ const donateGift = functions.https.onCall(
    * @inner
    * @param {object} data - details about the giftee
    * @param {string} data.user - user object or uid
+   * @param {string} data.year - Year of the event
    * @returns {Result}
    */
-  async ({ user }) => {
+  async ({ user, year }) => {
     let gameAccountUUID = await getGameAccountUUID(user);
     if (gameAccountUUID.error) {
       return { error: "no API key set" };
@@ -247,7 +250,7 @@ const donateGift = functions.https.onCall(
 
     gameAccountUUID = gameAccountUUID.success;
 
-    let eventDoc = db.collection(CollectionTypes.EVENTS).doc(EVENT);
+    let eventDoc = db.collection(CollectionTypes.EVENTS).doc(year);
 
     let participationDoc = eventDoc
       .collection(CollectionTypes.EVENTS__PARTICIPANTS)
@@ -332,7 +335,9 @@ const donateGift = functions.https.onCall(
     if (giftee) {
       const initializeGiftResponse = await initializeGift(
         gameAccountUUID,
-        giftee.gameAccountUUID
+        giftee.gameAccountUUID,
+        false,
+        year
       );
 
       if (initializeGiftResponse.success) {
@@ -363,7 +368,9 @@ const donateGift = functions.https.onCall(
     if (randomGift) {
       const initializeGiftResponse = await initializeGift(
         gameAccountUUID,
-        randomGift.gifteeGameAccountUUID
+        randomGift.gifteeGameAccountUUID,
+        false,
+        year
       );
 
       if (initializeGiftResponse.success) {
@@ -390,16 +397,17 @@ const getGifts = functions.https.onCall(
    * @inner
    * @param {object} data - details about the giftee
    * @param {string} data.user - user object or uid
+   * @param {string} data.year - Year of the event
    * @returns {Result}
    */
-  async ({ user }) => {
+  async ({ user, year }) => {
     let gameAccountUUID = await getGameAccountUUID(user);
     if (gameAccountUUID.error) {
       return { error: "no API key set" };
     }
     gameAccountUUID = gameAccountUUID.success;
 
-    let eventDoc = db.collection(CollectionTypes.EVENTS).doc(EVENT);
+    let eventDoc = db.collection(CollectionTypes.EVENTS).doc(year);
 
     let participantDoc = eventDoc
       .collection(CollectionTypes.EVENTS__PARTICIPANTS)

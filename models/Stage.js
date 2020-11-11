@@ -15,7 +15,7 @@ class Stage {
     this.end = typeof end === "object" ? end.toISOString() : end;
   }
 
-  static currentfromEventData(data) {
+  static fromEventData(data) {
     const { isMatchingDone, year } = data;
     let currentStage = new Stage(StageTypes.INACTIVE, year);
     const eventEnd = data.eventEnd.toDate();

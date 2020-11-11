@@ -14,7 +14,6 @@ const {
   getGameAccountUUID,
   volunteerForNewGiftees
 } = require("../utils/utils");
-const { EVENT } = require("../config/constants");
 
 /**
  * @namespace updateApiKey
@@ -109,10 +108,11 @@ const assignedGiftees = functions.https.onCall(
    * @inner
    * @param {object} data - details about the giftee
    * @param {string} data.user - user object or uid
+   * @param {string} data.year - Year of the event
    * @param {object} [context] - This is used by firebase, no idea what it does, I think its added automatically
    * @returns {Result}
    */
-  async ({ user }, context) => {
+  async ({ user, year }, context) => {
     let gifterGameAccountUUID = await getGameAccountUUID(user);
     if (gifterGameAccountUUID.error) {
       return { error: "no API key set" };
@@ -121,7 +121,7 @@ const assignedGiftees = functions.https.onCall(
 
     let giftee = await db
       .collection(CollectionTypes.EVENTS)
-      .doc(EVENT)
+      .doc(year)
       .collection(CollectionTypes.EVENTS__PARTICIPANTS)
       .where("gifter", "==", gifterGameAccountUUID)
       .get();
@@ -161,11 +161,12 @@ const volunteer = functions.https.onCall(
    * @param {object} data - details about the giftee
    * @param {string} data.user - user object or uid
    * @param {number} data.count - Number of new giftees they want
+   * @param {string} data.year - Year of the event
    * @param {object} [context] - This is used by firebase, no idea what it does, I think its added automatically
    * @returns {Result}
    */
-  async ({ user, count }, context) => {
-    return await volunteerForNewGiftees(user, count);
+  async ({ user, count, year }, context) => {
+    return await volunteerForNewGiftees(user, count, year);
   }
 );
 
