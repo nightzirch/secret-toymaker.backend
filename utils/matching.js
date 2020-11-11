@@ -2,12 +2,11 @@ require("firebase/firestore");
 const CollectionTypes = require("../utils/types/CollectionTypes");
 
 const { db } = require("../config/firebase");
-const { EVENT } = require("../config/constants");
 
-const setMatchingBegun = async value => {
+const setMatchingBegun = async (value, year) => {
   const isSuccessful = await db
     .collection(CollectionTypes.EVENTS)
-    .doc(EVENT)
+    .doc(year)
     .set({ isMatchingBegun: value }, { merge: true })
     .then(() => true)
     .catch(() => false);
@@ -15,10 +14,10 @@ const setMatchingBegun = async value => {
   return isSuccessful;
 };
 
-const setMatchingDone = async value => {
+const setMatchingDone = async (value, year) => {
   const isSuccessful = await db
     .collection(CollectionTypes.EVENTS)
-    .doc(EVENT)
+    .doc(year)
     .set({ isMatchingDone: value }, { merge: true })
     .then(() => true)
     .catch(() => false);
