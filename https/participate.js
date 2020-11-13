@@ -5,7 +5,6 @@ This is for when folks decide to participate, sets up the required values
 */
 const admin = require("firebase-admin");
 const functions = require("firebase-functions");
-const { EVENT } = require("../config/constants");
 const { db } = require("../config/firebase");
 const { getGw2Account, getGameAccountUUID } = require("../utils/utils");
 
@@ -21,10 +20,15 @@ const participate = functions.https.onCall(
    * @param {string} data.user - user object or uid
    * @param {boolean} [data.participate] - true or undefined if user is entering, false if theya re withdrawing
    * @param {string} [data.notes] - Note for teh gifter
+   * @param {string} [data.year] - Year of the event
    * @param {object} [context] - This is used by firebase, no idea what it does, I think its added automatically
    * @returns {Result}
    */
-  async ({ user, participate, notes }, context) => {
+  async ({ user, participate, notes, year }, context) => {
+    if(!year) {
+      return { error: "Missing year parameter." };
+    }
+    
     let gameAccountUUID = await getGameAccountUUID(user);
     if (gameAccountUUID.error) {
       return { error: "no API key set" };
@@ -36,7 +40,7 @@ const participate = functions.https.onCall(
 
       let deleteDoc = await db
         .collection(CollectionTypes.EVENTS)
-        .doc(EVENT)
+        .doc(year)
         .collection(CollectionTypes.EVENTS__PARTICIPANTS)
         .doc(gameAccountUUID)
         .delete()
@@ -49,7 +53,7 @@ const participate = functions.https.onCall(
 
       let counter = await db
         .collection(CollectionTypes.EVENTS)
-        .doc(EVENT)
+        .doc(year)
         .set(
           { participants: admin.firestore.FieldValue.increment(-1) },
           { merge: true }
@@ -66,7 +70,7 @@ const participate = functions.https.onCall(
         .collection(CollectionTypes.GAME_ACCOUNTS)
         .doc(gameAccountUUID)
         .collection(CollectionTypes.GAME_ACCOUNTS__EVENTS)
-        .doc(EVENT)
+        .doc(year)
         .delete()
         .then(() => {
           return true;
@@ -85,7 +89,7 @@ const participate = functions.https.onCall(
     // check if already exists
     let participationDoc = db
       .collection(CollectionTypes.EVENTS)
-      .doc(EVENT)
+      .doc(year)
       .collection(CollectionTypes.EVENTS__PARTICIPANTS)
       .doc(gameAccountUUID);
 
@@ -110,13 +114,13 @@ const participate = functions.https.onCall(
       notes,
       id: gameAccount.success.id,
       isFreeToPlay: gameAccount.success.isFreeToPlay,
-      year: EVENT
+      year
     };
 
     // adding the user to participants so they can get a match
     let participantDoc = db
       .collection(CollectionTypes.EVENTS)
-      .doc(EVENT)
+      .doc(year)
       .collection(CollectionTypes.EVENTS__PARTICIPANTS)
       .doc(gameAccountUUID);
 
@@ -148,7 +152,7 @@ const participate = functions.https.onCall(
     // inrecing teh counter for global stats
     let counter = await db
       .collection(CollectionTypes.EVENTS)
-      .doc(EVENT)
+      .doc(year)
       .set(
         { participants: admin.firestore.FieldValue.increment(1) },
         { merge: true }
@@ -165,12 +169,12 @@ const participate = functions.https.onCall(
       .collection(CollectionTypes.GAME_ACCOUNTS)
       .doc(gameAccountUUID)
       .collection(CollectionTypes.GAME_ACCOUNTS__EVENTS)
-      .doc(EVENT)
+      .doc(year)
       .set({
-        event: db.collection(CollectionTypes.EVENTS).doc(EVENT),
+        event: db.collection(CollectionTypes.EVENTS).doc(year),
         participation: db
           .collection(CollectionTypes.EVENTS)
-          .doc(EVENT)
+          .doc(year)
           .collection(CollectionTypes.EVENTS__PARTICIPANTS)
           .doc(gameAccountUUID)
       })

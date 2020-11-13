@@ -2,7 +2,7 @@ require("firebase/firestore");
 const CollectionTypes = require("../utils/types/CollectionTypes");
 
 const { db } = require("../config/firebase");
-const { DB_MAX_WRITE, EVENT } = require("../config/constants");
+const { DB_MAX_WRITE } = require("../config/constants");
 const sleep = require("util").promisify(setTimeout);
 
 const {
@@ -15,8 +15,8 @@ const { setMatchingBegun, setMatchingDone } = require("./matching");
  * This is the functions that matches everyone together for the initial round
  * @returns {Result}
  */
-const matchAllParticipants = async () => {
-  const eventDoc = db.collection(CollectionTypes.EVENTS).doc(EVENT);
+const matchAllParticipants = async (year) => {
+  const eventDoc = db.collection(CollectionTypes.EVENTS).doc(year);
 
   // this will run once manually
   let allParticipants = await eventDoc
@@ -25,8 +25,8 @@ const matchAllParticipants = async () => {
     .get();
 
   if (allParticipants.empty) {
-    await setMatchingBegun(false);
-    await setMatchingDone(false);
+    await setMatchingBegun(false, year);
+    await setMatchingDone(false, year);
     return { error: "No valid users" };
   }
 
@@ -39,8 +39,8 @@ const matchAllParticipants = async () => {
   });
 
   if (allParticipantsData.length === 0) {
-    await setMatchingBegun(false);
-    await setMatchingDone(false);
+    await setMatchingBegun(false, year);
+    await setMatchingDone(false, year);
     return { error: "No valid users" };
   }
 
@@ -107,7 +107,8 @@ const matchAllParticipants = async () => {
             batches[i],
             toymakerGameAccountUUID,
             gifteeGameAccountUUID,
-            true
+            true,
+            year
           );
         })
       );

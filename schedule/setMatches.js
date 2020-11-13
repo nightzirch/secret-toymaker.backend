@@ -1,6 +1,5 @@
 const functions = require("firebase-functions");
 const { matchAllParticipants } = require("../utils/matchAllParticipants");
-const { EVENT } = require("../config/constants");
 const CollectionTypes = require("../utils/types/CollectionTypes");
 const { getCurrentStage } = require("../utils/getCurrentStage");
 const { StageTypes } = require("../config/constants");
@@ -28,7 +27,9 @@ const setMatches = functions.pubsub.schedule("1 * * * *").onRun(
       return;
     }
 
-    const eventDoc = db.collection(CollectionTypes.EVENTS).doc(EVENT);
+    const { year } = currentStage;
+
+    const eventDoc = db.collection(CollectionTypes.EVENTS).doc(year);
     const event = await eventDoc.get();
 
     if (!event.exists) {
@@ -48,20 +49,20 @@ const setMatches = functions.pubsub.schedule("1 * * * *").onRun(
       return;
     }
 
-    await setMatchingBegun(true);
+    await setMatchingBegun(true, year);
 
-    const matchingResults = await matchAllParticipants();
+    const matchingResults = await matchAllParticipants(year);
 
     if (matchingResults.success) {
-      await setMatchingDone(true);
+      await setMatchingDone(true, year);
 
       console.log("Matching for the event successful.");
       return;
     }
 
     console.log("Matching for the event failed.", matchingResults);
-    await setMatchingBegun(false);
-    await setMatchingDone(false);
+    await setMatchingBegun(false, year);
+    await setMatchingDone(false, year);
     return;
   }
 );

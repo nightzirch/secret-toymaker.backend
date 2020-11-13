@@ -3,8 +3,7 @@ const Stage = require("../models/Stage");
 const { getCurrentEvent } = require("../utils/utils");
 
 const getCurrentStage = async () => {
-  // TODO: Remove "2019" as default
-  let currentStage = new Stage(StageTypes.INACTIVE, "2019");
+  let currentStage = null;
   const event = await getCurrentEvent();
 
   if (!event) {

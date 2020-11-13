@@ -8,7 +8,6 @@ also has functions to return admin stuff as well
 const functions = require("firebase-functions");
 require("firebase/firestore");
 const { getGeneralQueries } = require("../utils/utils");
-const { EVENT } = require("../config/constants");
 const { db } = require("../config/firebase");
 
 /**
@@ -22,12 +21,17 @@ const getNotSent = functions.https.onCall(
    * @param {object} data
    * @param {number} data.skip - number of entries to skip
    * @param {number} data.limit - number of entries to return
+   * @param {string} year - Year of the event
    * @param {object} [context] - This is used by firebase, no idea what it does, I think its added automatically
    * @returns {Result}
    */
-  async ({ skip, limit }, context) => {
+  async ({ skip, limit, year }, context) => {
+    if(!year) {
+      return { error: "Missing year parameter." };
+    }
+    
     return {
-      success: await getGeneralQueries("sent_own", "==", false, skip, limit)
+      success: await getGeneralQueries("sent_own", "==", false, skip, limit, year)
     };
   }
 );
@@ -43,12 +47,17 @@ const getNotReceived = functions.https.onCall(
    * @param {object} data
    * @param {number} data.skip - number of entries to skip
    * @param {number} data.limit - number of entries to return
+   * @param {string} data.year - Year of the event
    * @param {object} [context] - This is used by firebase, no idea what it does, I think its added automatically
    * @returns {Result}
    */
-  async ({ skip, limit }, context) => {
+  async ({ skip, limit, year }, context) => {
+    if(!year) {
+      return { error: "Missing year parameter." };
+    }
+    
     return {
-      success: await getGeneralQueries("received", "==", false, skip, limit)
+      success: await getGeneralQueries("received", "==", false, skip, limit, year)
     };
   }
 );
@@ -64,12 +73,17 @@ const getReported = functions.https.onCall(
    * @param {object} data
    * @param {number} data.skip - number of entries to skip
    * @param {number} data.limit - number of entries to return
+   * @param {string} data.year - Year of the event
    * @param {object} [context] - This is used by firebase, no idea what it does, I think its added automatically
    * @returns {Result}
    */
-  async ({ skip, limit }, context) => {
+  async ({ skip, limit, year }, context) => {
+    if(!year) {
+      return { error: "Missing year parameter." };
+    }
+    
     return {
-      success: await getGeneralQueries("reported", "==", true, skip, limit)
+      success: await getGeneralQueries("reported", "==", true, skip, limit, year)
     };
   }
 );
@@ -82,13 +96,19 @@ const getStats = functions.https.onCall(
   /**
    * Gets global stats for teh current event
    * @inner
+   * @param {object} data
+   * @param {string} data.year - Year of the event
    * @param {object} [context] - This is used by firebase, no idea what it does, I think its added automatically
    * @returns {Result}
    */
-  async context => {
+  async ({ year }, context) => {
+    if(!year) {
+      return { error: "Missing year parameter." };
+    }
+    
     let statsDoc = await db
       .collection(CollectionTypes.EVENTS)
-      .doc(EVENT)
+      .doc(year)
       .get();
     if (!statsDoc.exists) {
       return { error: "No stats" };

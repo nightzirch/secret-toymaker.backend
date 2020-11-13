@@ -1,7 +1,6 @@
 const admin = require("firebase-admin");
 require("firebase/firestore");
 const { db } = require("../config/firebase");
-const { EVENT } = require("../config/constants");
 const CollectionTypes = require("../utils/types/CollectionTypes");
 
 /**
@@ -10,12 +9,14 @@ const CollectionTypes = require("../utils/types/CollectionTypes");
  * @param {string} toymakerGameAccountUUID - UUID of the toymaker
  * @param {string} gifteeGameAccountUUID - UUID of the giftee
  * @param {bool} isPrimary - Is this the primary/required gift?
+ * @param {string} year - Year of the event
  * @returns {Result}
  */
 const initializeGift = async (
   toymakerGameAccountUUID,
   gifteeGameAccountUUID,
-  isPrimary = false
+  isPrimary = false,
+  year
 ) => {
   if (!toymakerGameAccountUUID) {
     return { error: "no toymakerGameAccountUUID set" };
@@ -25,7 +26,7 @@ const initializeGift = async (
     return { error: "no gifteeGameAccountUUID set" };
   }
 
-  let eventDoc = db.collection(CollectionTypes.EVENTS).doc(EVENT);
+  let eventDoc = db.collection(CollectionTypes.EVENTS).doc(year);
 
   let gifteeDoc = eventDoc
     .collection(CollectionTypes.EVENTS__PARTICIPANTS)
@@ -95,13 +96,15 @@ const initializeGift = async (
  * @param {string} toymakerGameAccountUUID - UUID of the toymaker
  * @param {string} gifteeGameAccountUUID - UUID of the giftee
  * @param {bool} isPrimary - Is this the primary/required gift?
+ * @param {string} year - Year of the event
  * @returns {object}
  */
 const updateBatchWithInitialGift = async (
   batch,
   toymakerGameAccountUUID,
   gifteeGameAccountUUID,
-  isPrimary = false
+  isPrimary = false,
+  year
 ) => {
   if (!toymakerGameAccountUUID) {
     console.log("No toymakerGameAccountUUID set.");
@@ -113,7 +116,7 @@ const updateBatchWithInitialGift = async (
     return { error: "No gifteeGameAccountUUID set." };
   }
 
-  let eventDoc = db.collection(CollectionTypes.EVENTS).doc(EVENT);
+  let eventDoc = db.collection(CollectionTypes.EVENTS).doc(year);
 
   let gifteeDoc = eventDoc
     .collection(CollectionTypes.EVENTS__PARTICIPANTS)

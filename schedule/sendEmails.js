@@ -1,5 +1,4 @@
 const functions = require("firebase-functions");
-const { EVENT } = require("../config/constants");
 const CollectionTypes = require("../utils/types/CollectionTypes");
 const { getCurrentStage } = require("../utils/getCurrentStage");
 const { StageTypes } = require("../config/constants");
@@ -21,7 +20,7 @@ const sendSignupStarts = functions.pubsub.schedule("1 * * * *").onRun(
    * @param {object} [context] - This is used by firebase, no idea what it does, I think its added automatically
    * @returns {undefined}
    */
-  async context => {
+  async (context) => {
     const currentStage = await getCurrentStage();
 
     if (currentStage.type !== StageTypes.SIGNUP) {
@@ -30,7 +29,9 @@ const sendSignupStarts = functions.pubsub.schedule("1 * * * *").onRun(
       };
     }
 
-    const eventDoc = db.collection(CollectionTypes.EVENTS).doc(EVENT);
+    const { year } = currentStage;
+
+    const eventDoc = db.collection(CollectionTypes.EVENTS).doc(year);
     const eventSnap = await eventDoc.get();
 
     if (!eventSnap.exists) {
@@ -62,9 +63,7 @@ const sendSignupStarts = functions.pubsub.schedule("1 * * * *").onRun(
     const response = await sendEmailTemplate({
       userIds: participantsWithConsent.map(p => p.uid),
       templateName: "signupStart",
-      templateData: {
-        year: EVENT
-      }
+      templateData: { year }
     });
 
     if (response.success) {
@@ -105,7 +104,7 @@ const sendSignupReminder = functions.pubsub.schedule("1 * * * *").onRun(
    * @param {object} [context] - This is used by firebase, no idea what it does, I think its added automatically
    * @returns {undefined}
    */
-  async context => {
+  async (context) => {
     const currentStage = await getCurrentStage();
 
     if (currentStage.type !== StageTypes.SIGNUP) {
@@ -114,9 +113,11 @@ const sendSignupReminder = functions.pubsub.schedule("1 * * * *").onRun(
       };
     }
 
+    const { year } = currentStage;
+
     // TODO: Check if we're less than a few days (3? A week?) before signup closes.
 
-    const eventDoc = db.collection(CollectionTypes.EVENTS).doc(EVENT);
+    const eventDoc = db.collection(CollectionTypes.EVENTS).doc(year);
     const eventSnap = await eventDoc.get();
 
     if (!eventSnap.exists) {
@@ -150,7 +151,7 @@ const sendSignupReminder = functions.pubsub.schedule("1 * * * *").onRun(
             templateName: "signupReminder",
             templateData: {
               username: t.name || "toymaker",
-              year: EVENT
+              year
             }
           })
         )
@@ -200,7 +201,7 @@ const sendEventStarts = functions.pubsub.schedule("1 * * * *").onRun(
    * @param {object} [context] - This is used by firebase, no idea what it does, I think its added automatically
    * @returns {undefined}
    */
-  async context => {
+  async (context) => {
     const currentStage = await getCurrentStage();
 
     if (currentStage.type !== StageTypes.GIFTING) {
@@ -209,7 +210,9 @@ const sendEventStarts = functions.pubsub.schedule("1 * * * *").onRun(
       };
     }
 
-    const eventDoc = db.collection(CollectionTypes.EVENTS).doc(EVENT);
+    const { year } = currentStage;
+
+    const eventDoc = db.collection(CollectionTypes.EVENTS).doc(year);
     const eventSnap = await eventDoc.get();
 
     if (!eventSnap.exists) {
@@ -245,7 +248,7 @@ const sendEventStarts = functions.pubsub.schedule("1 * * * *").onRun(
             templateName: "eventStart",
             templateData: {
               username: p.name || p.id || "Toymaker",
-              year: EVENT
+              year
             }
           })
         )

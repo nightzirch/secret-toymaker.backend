@@ -6,7 +6,6 @@ const StageTypes = {
   INACTIVE: "INACTIVE"
 };
 
-const EVENT = "2019";
 const DB_MAX_WRITE = 500;
 
-module.exports = { StageTypes, EVENT, DB_MAX_WRITE };
+module.exports = { StageTypes, DB_MAX_WRITE };
