@@ -10,6 +10,7 @@ class Event {
    * @param {boolean} isMatchingDone - Is matching done
    * @param {number} participants - Amount of participants
    * @param {date} signupStart - The start time for signing up for the event
+   * @param {string} name - The name of the event
    * @param {string} year - The year of the event
    * @returns {Event}
    */
@@ -22,6 +23,7 @@ class Event {
     isMatchingBegun,
     isMatchingDone,
     participants,
+    name,
     year
   ) {
     this.stage = stage;
@@ -35,6 +37,7 @@ class Event {
     this.participants = participants || 0;
     this.signupStart =
       typeof signupStart === "object" ? signupStart.toISOString() : signupStart;
+    this.name = name;
     this.year = year;
   }
 
@@ -48,6 +51,7 @@ class Event {
       data.isMatchingBegun,
       data.isMatchingDone,
       data.participants,
+      data.name,
       data.year
     );
   }
