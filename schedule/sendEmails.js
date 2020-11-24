@@ -125,7 +125,7 @@ const sendSignupReminder = functions.pubsub.schedule("1 * * * *").onRun(
     }
 
     const event = eventSnap.data();
-    const { emails } = event;
+    const { emails, name: eventName } = event;
 
     if (emails.signupReminder) {
       return { success: "Emails for reminding signing up are already sent." };
@@ -150,6 +150,7 @@ const sendSignupReminder = functions.pubsub.schedule("1 * * * *").onRun(
             userIds: [t.uid],
             templateName: "signupReminder",
             templateData: {
+              eventName,
               username: t.name || "toymaker",
               year
             }
@@ -220,7 +221,7 @@ const sendEventStarts = functions.pubsub.schedule("1 * * * *").onRun(
     }
 
     const event = eventSnap.data();
-    const { emails } = event;
+    const { emails, name: eventName } = event;
 
     if (emails.eventStart) {
       return { success: "Emails for event start are already sent." };
@@ -247,6 +248,7 @@ const sendEventStarts = functions.pubsub.schedule("1 * * * *").onRun(
             userIds: [p.uid],
             templateName: "eventStart",
             templateData: {
+              eventName,
               username: p.name || p.id || "Toymaker",
               year
             }
