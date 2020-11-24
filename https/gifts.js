@@ -304,7 +304,7 @@ const donateGift = functions.https.onCall(
     );
 
     if (!allGiftsAreSent) {
-      return { error: "Not all outoging gifts are sent." };
+      return { error: "Not all outgoing gifts are sent." };
     }
 
     let notSentGifts = await eventDoc

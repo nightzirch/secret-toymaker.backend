@@ -45,7 +45,7 @@ const updateApiKey = functions.https.onCall(
       });
 
     if (accountData.error) {
-      // Somethign went wrong went wrong
+      // Somethign went wrong
 
       if (accountData.error.statusCode === 401) {
         return { error: "API key does not have access" };
