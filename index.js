@@ -22,6 +22,7 @@ const {
 } = require("./https/stats");
 const { sendSignupStarts, sendSignupReminder, sendEventStarts, sendEventEnd} = require("./schedule/sendEmails");
 const { setMatches } = require("./schedule/setMatches");
+const { onUserCreated } = require("./triggers/auth");
 
 // Alerts
 exports.getAlerts = getAlerts;
@@ -54,6 +55,9 @@ exports.sendEventEnd = sendEventEnd;
 
 // Scheduled function for setting matches
 exports.setMatches = setMatches;
+
+// Triggers
+exports.onUserCreated = onUserCreated;
 
 // admin commands
 //exports.getNotSent = getNotSent
