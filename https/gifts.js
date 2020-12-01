@@ -284,7 +284,7 @@ const donateGift = functions.https.onCall(
       return { error: "No outgoing gifts registered." };
     }
 
-    let allGiftsAreSent = true;
+    let allGiftsAreSentOrReceived = true;
     let allParticipantGiftees = [];
     let giftee;
 
@@ -296,14 +296,19 @@ const donateGift = functions.https.onCall(
           gift = gift.data();
           allParticipantGiftees.push(gift.gifteeGameAccountUUID);
 
-          if (!gift.sent) {
-            allGiftsAreSent = false;
+          /**
+           * If the gift is not sent, nor received.
+           * There are cases where gifts are only received, but not sent.
+           * This happens when sender forgets to mark gift as sent, but receiver marks it as received.
+           */
+          if (!gift.sent && !gift.received) {
+            allGiftsAreSentOrReceived = false;
           }
         }
       })
     );
 
-    if (!allGiftsAreSent) {
+    if (!allGiftsAreSentOrReceived) {
       return { error: "Not all outgoing gifts are sent." };
     }
 
