@@ -1,6 +1,7 @@
 require("firebase/firestore");
 const admin = require("firebase-admin");
 const CollectionTypes = require("../utils/types/CollectionTypes");
+const Event = require("../models/Event");
 
 const { db } = require("../config/firebase");
 
@@ -25,7 +26,7 @@ const getCurrentEvent = async () => {
       const now = new Date();
 
       if (signupStart < now && now < eventEnd) {
-        currentEvent = event;
+        currentEvent = Event.fromData(event);
       }
     }
   });

@@ -24,7 +24,8 @@ class Event {
     isMatchingDone,
     participants,
     name,
-    year
+    year,
+    emails
   ) {
     this.stage = stage;
     this.eventEnd =
@@ -39,6 +40,7 @@ class Event {
       typeof signupStart === "object" ? signupStart.toISOString() : signupStart;
     this.name = name;
     this.year = year;
+    this.emails = emails;
   }
 
   static fromData(data) {
@@ -52,7 +54,8 @@ class Event {
       data.isMatchingDone,
       data.participants,
       data.name,
-      data.year
+      data.year,
+      data.emails
     );
   }
 }
