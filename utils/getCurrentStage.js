@@ -4,13 +4,13 @@ const { getCurrentEvent } = require("../utils/utils");
 
 const getCurrentStage = async () => {
   let currentStage = null;
-  const event = await getCurrentEvent();
+  const currentEvent = await getCurrentEvent();
 
-  if (!event) {
+  if (!currentEvent) {
     return currentStage;
   }
 
-  return Stage.fromEventData(event);
+  return currentEvent.stage;
 };
 
 module.exports = { getCurrentStage };
