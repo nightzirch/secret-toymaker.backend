@@ -5,22 +5,27 @@ const { participate, participateStatus } = require("./https/participate");
 const {
   assignedGiftees,
   updateApiKey,
-  volunteer
+  volunteer,
 } = require("./https/gw2Accounts");
 const {
   getGifts,
   donateGift,
   updateGiftSentStatus,
   updateGiftReceivedStatus,
-  updateGiftReportedStatus
+  updateGiftReportedStatus,
 } = require("./https/gifts");
 const {
   getNotSent,
   getNotReceived,
   getReported,
-  getStats
+  getStats,
 } = require("./https/stats");
-const { sendSignupStarts, sendSignupReminder, sendEventStarts, sendEventEnd} = require("./schedule/sendEmails");
+const {
+  sendSignupStarts,
+  sendEventStarts,
+  sendEventEnd,
+} = require("./schedule/sendEmails");
+const { sendSignupReminder } = require("./schedule/sendSignupReminder");
 const { setMatches } = require("./schedule/setMatches");
 const { onUserCreated } = require("./triggers/auth");
 
