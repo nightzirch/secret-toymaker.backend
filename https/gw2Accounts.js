@@ -12,7 +12,7 @@ const rp = require("request-promise-native");
 const { db } = require("../config/firebase");
 const {
   getGameAccountUUID,
-  volunteerForNewGiftees
+  volunteerForNewGiftees,
 } = require("../utils/utils");
 
 /**
@@ -29,7 +29,7 @@ const updateApiKey = functions.https.onCall(
    * @param {object} [context] - This is used by firebase, no idea what it does, I think its added automatically
    * @returns {Result}
    */
-  async ({ user, apiToken }, context) => {
+  async ({ user, apiToken }) => {
     // may tern the request into a genralised function if we get the mail endpoint, but for now it is sufficent
 
     // first check key
@@ -37,10 +37,10 @@ const updateApiKey = functions.https.onCall(
       "https://api.guildwars2.com/v2/account?v=2019-11-18T00:00:00Z&access_token=" +
       apiToken;
     let accountData = await rp({ url: url, resolveWithFullResponse: true })
-      .then(response => {
+      .then((response) => {
         return { headers: response.headers, body: response.body };
       })
-      .catch(error => {
+      .catch((error) => {
         return { error: error };
       });
 
@@ -60,7 +60,8 @@ const updateApiKey = functions.https.onCall(
     let result = JSON.parse(accountData.body);
 
     // figure pout if the person is F2P
-    let isFreeToPlay = result.access.indexOf("PlayForFree") !== -1 && result.access.length === 1;
+    let isFreeToPlay =
+      result.access.indexOf("PlayForFree") !== -1 && result.access.length === 1;
 
     // get gameAccountUUID
     let gameAccountUUID = result.id;
@@ -74,9 +75,9 @@ const updateApiKey = functions.https.onCall(
         apiToken,
         lastValid: new Date().toISOString(),
         isFreeToPlay,
-        id: result.name
+        id: result.name,
       })
-      .catch(err => console.log(err));
+      .catch((err) => console.log(err));
 
     await db
       .collection(CollectionTypes.TOYMAKERS)
@@ -87,11 +88,11 @@ const updateApiKey = functions.https.onCall(
           gameAccountUUID: gameAccountUUID,
           gameAccount: db
             .collection(CollectionTypes.GAME_ACCOUNTS)
-            .doc(gameAccountUUID)
+            .doc(gameAccountUUID),
         },
         { merge: true }
       )
-      .catch(err => console.log(err));
+      .catch((err) => console.log(err));
 
     // return that is is a success
     return { success: "API key added" };
@@ -113,10 +114,10 @@ const assignedGiftees = functions.https.onCall(
    * @returns {Result}
    */
   async ({ user, year }, context) => {
-    if(!year) {
+    if (!year) {
       return { error: "Missing year parameter." };
     }
-    
+
     let gifterGameAccountUUID = await getGameAccountUUID(user);
     if (gifterGameAccountUUID.error) {
       return { error: "no API key set" };
@@ -135,7 +136,7 @@ const assignedGiftees = functions.https.onCall(
 
     // array in case the user is sending gifts to multiple folks
     let gifteeArray = [];
-    giftee.forEach(doc => {
+    giftee.forEach((doc) => {
       let gifteeData = doc.data();
 
       gifteeArray.push({
@@ -146,7 +147,7 @@ const assignedGiftees = functions.https.onCall(
         // these notes the state
         sent: gifteeData.sent,
         received: gifteeData.received,
-        reported: gifteeData.reported
+        reported: gifteeData.reported,
       });
     });
 
@@ -170,12 +171,16 @@ const volunteer = functions.https.onCall(
    * @returns {Result}
    */
   async ({ user, count, year }, context) => {
-    if(!year) {
+    if (!year) {
       return { error: "Missing year parameter." };
     }
-    
+
     return await volunteerForNewGiftees(user, count, year);
   }
 );
 
-module.exports = { updateApiKey, assignedGiftees, volunteer };
+module.exports = {
+  updateApiKey,
+  assignedGiftees,
+  volunteer,
+};
