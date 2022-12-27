@@ -44,8 +44,8 @@
   "dependencies": {
     "class-transformer": "^0.3.1",
     "firebase": "^7.24.0",
-    "firebase-admin": "^8.13.0",
-    "firebase-functions": "^3.11.0",
+    "firebase-admin": "^11.4.1",
+    "firebase-functions": "^3.24.1",
     "moment": "^2.24.0",
     "request": "^2.88.0",
     "request-promise-native": "^1.0.8"
