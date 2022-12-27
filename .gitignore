@@ -9,3 +9,4 @@ node_modules/
 firebase-debug.log
 functions/testing.js
 config/app-engine-service-account-key.json
+.env
