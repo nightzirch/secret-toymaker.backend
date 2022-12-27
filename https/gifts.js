@@ -29,7 +29,7 @@ const updateGiftSentStatus = functions.https.onCall(
    * @returns {Result}
    */
   async ({ user, giftId, isSent, year }) => {
-    if(!year) {
+    if (!year) {
       return { error: "Missing year parameter." };
     }
 
@@ -53,7 +53,7 @@ const updateGiftSentStatus = functions.https.onCall(
     let isGiftUpdatedSuccessfully = giftDoc
       .set(
         {
-          sent: isSent ? new Date().toISOString() : null
+          sent: isSent ? new Date().toISOString() : null,
         },
         { merge: true }
       )
@@ -70,7 +70,7 @@ const updateGiftSentStatus = functions.https.onCall(
     let isStatsUpdated = eventDoc
       .set(
         {
-          giftsSent: admin.firestore.FieldValue.increment(isSent ? 1 : -1)
+          giftsSent: admin.firestore.FieldValue.increment(isSent ? 1 : -1),
         },
         { merge: true }
       )
@@ -84,7 +84,7 @@ const updateGiftSentStatus = functions.https.onCall(
     return isStatsUpdated
       ? { success: "Successfully updated gift's sent status." }
       : {
-          error: "Failed updating statistics."
+          error: "Failed updating statistics.",
         };
   }
 );
@@ -105,7 +105,7 @@ const updateGiftReceivedStatus = functions.https.onCall(
    * @returns {Result}
    */
   async ({ user, giftId, isReceived, year }) => {
-    if(!year) {
+    if (!year) {
       return { error: "Missing year parameter." };
     }
 
@@ -128,7 +128,7 @@ const updateGiftReceivedStatus = functions.https.onCall(
     let isGiftUpdatedSuccessfully = giftDoc
       .set(
         {
-          received: isReceived ? new Date().toISOString() : null
+          received: isReceived ? new Date().toISOString() : null,
         },
         { merge: true }
       )
@@ -147,7 +147,7 @@ const updateGiftReceivedStatus = functions.https.onCall(
         {
           giftsReceived: admin.firestore.FieldValue.increment(
             isReceived ? 1 : -1
-          )
+          ),
         },
         { merge: true }
       )
@@ -170,7 +170,7 @@ const updateGiftReceivedStatus = functions.https.onCall(
  */
 const updateGiftReportedStatus = functions.https.onCall(
   /**
-   * Updates the sent status of the gift
+   * Updates the reported status of the gift
    * @inner
    * @param {object} data - details about the giftee
    * @param {string} data.user - user object or uid
@@ -181,7 +181,7 @@ const updateGiftReportedStatus = functions.https.onCall(
    * @returns {Result}
    */
   async ({ user, giftId, isReporting, reportMessage, year }) => {
-    if(!year) {
+    if (!year) {
       return { error: "Missing year parameter." };
     }
 
@@ -205,7 +205,7 @@ const updateGiftReportedStatus = functions.https.onCall(
       .set(
         {
           reported: isReporting ? new Date().toISOString() : null,
-          reportMessage: isReporting ? reportMessage : null
+          reportMessage: isReporting ? reportMessage : null,
         },
         { merge: true }
       )
@@ -224,7 +224,7 @@ const updateGiftReportedStatus = functions.https.onCall(
         {
           giftsReported: admin.firestore.FieldValue.increment(
             isReporting ? 1 : -1
-          )
+          ),
         },
         { merge: true }
       )
@@ -255,7 +255,7 @@ const donateGift = functions.https.onCall(
    * @returns {Result}
    */
   async ({ user, year }) => {
-    if(!year) {
+    if (!year) {
       return { error: "Missing year parameter." };
     }
 
@@ -289,7 +289,7 @@ const donateGift = functions.https.onCall(
     let giftee;
 
     await Promise.all(
-      outgoingGifts.map(async giftDoc => {
+      outgoingGifts.map(async (giftDoc) => {
         let gift = await giftDoc.get();
 
         if (gift.exists) {
@@ -340,7 +340,7 @@ const donateGift = functions.https.onCall(
 
       let allParticipantsData = [];
 
-      allParticipants.forEach(doc => {
+      allParticipants.forEach((doc) => {
         let participantData = doc.data();
         if (
           participantData.gameAccountUUID !== gameAccountUUID &&
@@ -366,14 +366,14 @@ const donateGift = functions.https.onCall(
       } else {
         return {
           error: "Could not initialize donation gift.",
-          trace: initializeGiftResponse.error
+          trace: initializeGiftResponse.error,
         };
       }
     }
 
     let allGiftsData = [];
 
-    notSentGifts.forEach(doc => {
+    notSentGifts.forEach((doc) => {
       let giftData = doc.data();
       let { gifteeGameAccountUUID } = giftData;
       if (
@@ -399,7 +399,7 @@ const donateGift = functions.https.onCall(
       } else {
         return {
           error: "Could not initialize donation gift.",
-          trace: initializeGiftResponse.error
+          trace: initializeGiftResponse.error,
         };
       }
     }
@@ -422,10 +422,10 @@ const getGifts = functions.https.onCall(
    * @returns {Result}
    */
   async ({ user, year }) => {
-    if(!year) {
+    if (!year) {
       return { error: "Missing year parameter." };
     }
-    
+
     let gameAccountUUID = await getGameAccountUUID(user);
     if (gameAccountUUID.error) {
       return { error: "no API key set" };
@@ -455,36 +455,41 @@ const getGifts = functions.https.onCall(
     let outgoingGifteesData = [];
 
     if (!incomingGiftsSnapshot.empty) {
-      incomingGiftsSnapshot.forEach(doc => {
+      incomingGiftsSnapshot.forEach(async (doc) => {
         let data = doc.data();
+        let toymakerDoc = await data.toymaker.get();
 
-        const giftData = {
-          id: doc.id,
-          match: "Secret Toymaker",
-          notes: data.notes,
-          isPrimary: data.isPrimary,
-          reported: data.reported,
-          received: data.received,
-          initialized: data.initialized,
-          sent: data.sent,
-          year
-        };
+        if (toymakerDoc.exists) {
+          let toymaker = toymakerDoc.data();
 
-        if (data.isPrimary) {
-          incomingPrimaryGift = giftData;
-        } else {
-          incomingGifts.push(giftData);
+          const giftData = {
+            id: doc.id,
+            match: data.sent ? toymaker.id : "Secret Toymaker",
+            notes: data.notes,
+            isPrimary: data.isPrimary,
+            reported: data.reported,
+            received: data.received,
+            initialized: data.initialized,
+            sent: data.sent,
+            year,
+          };
+
+          if (data.isPrimary) {
+            incomingPrimaryGift = giftData;
+          } else {
+            incomingGifts.push(giftData);
+          }
         }
       });
     }
 
     if (!outgoingGiftsSnapshot.empty) {
-      outgoingGiftsSnapshot.forEach(doc => {
+      outgoingGiftsSnapshot.forEach((doc) => {
         outgoingGifteesData.push(Object.assign({}, doc.data(), { id: doc.id }));
       });
 
       await Promise.all(
-        outgoingGifteesData.map(async data => {
+        outgoingGifteesData.map(async (data) => {
           let gifteeDoc = await data.giftee.get();
 
           if (gifteeDoc.exists) {
@@ -499,7 +504,7 @@ const getGifts = functions.https.onCall(
               received: data.received,
               initialized: data.initialized,
               sent: data.sent,
-              year
+              year,
             };
 
             if (data.isPrimary) {
@@ -517,8 +522,8 @@ const getGifts = functions.https.onCall(
         outgoingPrimary: outgoingPrimaryGift,
         outgoing: outgoingGifts,
         incomingPrimary: incomingPrimaryGift,
-        incoming: incomingGifts
-      }
+        incoming: incomingGifts,
+      },
     };
   }
 );
@@ -528,5 +533,5 @@ module.exports = {
   donateGift,
   updateGiftSentStatus,
   updateGiftReceivedStatus,
-  updateGiftReportedStatus
+  updateGiftReportedStatus,
 };
