@@ -7,6 +7,7 @@ const {
   updateApiKey,
   volunteer,
 } = require("./https/gw2Accounts");
+const { updateAllAccountInfo } = require("./schedule/updateAllAccountInfo");
 const {
   getGifts,
   donateGift,
@@ -60,6 +61,9 @@ exports.sendEventEnd = sendEventEnd;
 
 // Scheduled function for setting matches
 exports.setMatches = setMatches;
+
+// Scheduled function for updating account info
+exports.updateAllAccountInfo = updateAllAccountInfo;
 
 // Triggers
 exports.onUserCreated = onUserCreated;
