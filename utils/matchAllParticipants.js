@@ -5,10 +5,7 @@ const { db } = require("../config/firebase");
 const { DB_MAX_WRITE } = require("../config/constants");
 const sleep = require("util").promisify(setTimeout);
 
-const {
-  initializeGift,
-  updateBatchWithInitialGift
-} = require("./initializeGift");
+const { updateBatchWithInitialGift } = require("./initializeGift");
 const { setMatchingBegun, setMatchingDone } = require("./matching");
 
 /**
@@ -33,7 +30,7 @@ const matchAllParticipants = async (year) => {
   let gifteeToymakerRelation = {};
   let allParticipantsData = [];
 
-  allParticipants.forEach(doc => {
+  allParticipants.forEach((doc) => {
     let data = doc.data();
     allParticipantsData.push(data);
   });
@@ -46,11 +43,11 @@ const matchAllParticipants = async (year) => {
 
   // Working our way chronnologically through all participants.
   // The first in the array will be the toymaker.
-  allParticipantsData.forEach(participantData => {
+  allParticipantsData.forEach((participantData) => {
     let toymakerGameAccountUUID = participantData.gameAccountUUID;
 
     let possibleGiftees = allParticipantsData.filter(
-      user =>
+      (user) =>
         user.gameAccountUUID !== toymakerGameAccountUUID &&
         !gifteeToymakerRelation[user.gameAccountUUID]
     );
@@ -84,9 +81,8 @@ const matchAllParticipants = async (year) => {
       gifteeToymakerRelation[gifteeGameAccountUUID];
     const batchNo = Math.ceil((i + 1) / amountOfParticipantsPerBatch) - 1;
 
-    gifteeToymakerRelationBatches[batchNo][
-      gifteeGameAccountUUID
-    ] = toymakerGameAccountUUID;
+    gifteeToymakerRelationBatches[batchNo][gifteeGameAccountUUID] =
+      toymakerGameAccountUUID;
   });
 
   const results = [];
@@ -100,7 +96,7 @@ const matchAllParticipants = async (year) => {
       );
 
       await Promise.all(
-        Object.keys(gtr).map(async gifteeGameAccountUUID => {
+        Object.keys(gtr).map(async (gifteeGameAccountUUID) => {
           const toymakerGameAccountUUID = gtr[gifteeGameAccountUUID];
 
           await updateBatchWithInitialGift(
@@ -118,10 +114,10 @@ const matchAllParticipants = async (year) => {
         .then(() => {
           console.log(`All users in batch ${i + 1} matched successfully.`);
           return {
-            success: `All users in batch ${i + 1} matched successfully.`
+            success: `All users in batch ${i + 1} matched successfully.`,
           };
         })
-        .catch(e => {
+        .catch((e) => {
           console.log(e);
           return { error: "Error while matching batch.", trace: e };
         });
@@ -133,7 +129,7 @@ const matchAllParticipants = async (year) => {
 
   let result = { success: "All users matched successfully." };
 
-  results.forEach(r => {
+  results.forEach((r) => {
     if (r.error) {
       result = { error: "Error while matching.", trace: r.error };
     }
@@ -143,5 +139,5 @@ const matchAllParticipants = async (year) => {
 };
 
 module.exports = {
-  matchAllParticipants
+  matchAllParticipants,
 };

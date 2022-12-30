@@ -26,7 +26,6 @@ const updateApiKey = functions.https.onCall(
    * @param {object} data - details about the giftee
    * @param {string} data.user - user object or uid
    * @param {string} data.apiToken - api key
-   * @param {object} [context] - This is used by firebase, no idea what it does, I think its added automatically
    * @returns {Result}
    */
   async ({ user, apiToken }) => {
@@ -110,10 +109,9 @@ const assignedGiftees = functions.https.onCall(
    * @param {object} data - details about the giftee
    * @param {string} data.user - user object or uid
    * @param {string} data.year - Year of the event
-   * @param {object} [context] - This is used by firebase, no idea what it does, I think its added automatically
    * @returns {Result}
    */
-  async ({ user, year }, context) => {
+  async ({ user, year }) => {
     if (!year) {
       return { error: "Missing year parameter." };
     }
@@ -167,10 +165,9 @@ const volunteer = functions.https.onCall(
    * @param {string} data.user - user object or uid
    * @param {number} data.count - Number of new giftees they want
    * @param {string} data.year - Year of the event
-   * @param {object} [context] - This is used by firebase, no idea what it does, I think its added automatically
    * @returns {Result}
    */
-  async ({ user, count, year }, context) => {
+  async ({ user, count, year }) => {
     if (!year) {
       return { error: "Missing year parameter." };
     }

@@ -1,17 +1,11 @@
 const functions = require("firebase-functions");
 const CollectionTypes = require("../utils/types/CollectionTypes");
-const { getCurrentStage } = require("../utils/getCurrentStage");
 const { StageTypes } = require("../config/constants");
 const { getAllAuthUsers } = require("../utils/users");
 const { db } = require("../config/firebase");
-const Stage = require("../models/Stage");
 const { getCurrentEvent } = require("../utils/utils");
 const moment = require("moment");
-const {
-  filterToymakersConsents,
-  filterParticipantsConsentsByEventDoc,
-  sendEmailTemplate,
-} = require("../utils/email");
+const { sendEmailTemplate } = require("../utils/email");
 
 /**
  * @namespace sendSignupReminder
@@ -21,17 +15,18 @@ const sendSignupReminder = functions.pubsub.schedule("1 * * * *").onRun(
   /**
    * Sends an email to everyone who registered at the site during the current event.
    * @inner
-   * @param {object} [context] - This is used by firebase, no idea what it does, I think its added automatically
    * @returns {undefined}
    */
-  async (context) => {
+  async () => {
     const currentEvent = await getCurrentEvent();
 
     if (!currentEvent) {
       return { success: "There are no events active." };
     }
 
-    const eventDoc = db.collection(CollectionTypes.EVENTS).doc(currentEvent.year);
+    const eventDoc = db
+      .collection(CollectionTypes.EVENTS)
+      .doc(currentEvent.year);
 
     if (currentEvent.stage.type !== StageTypes.SIGNUP) {
       return {

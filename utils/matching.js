@@ -27,5 +27,5 @@ const setMatchingDone = async (value, year) => {
 
 module.exports = {
   setMatchingBegun,
-  setMatchingDone
+  setMatchingDone,
 };

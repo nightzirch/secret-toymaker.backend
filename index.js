@@ -15,12 +15,7 @@ const {
   updateGiftReceivedStatus,
   updateGiftReportedStatus,
 } = require("./https/gifts");
-const {
-  getNotSent,
-  getNotReceived,
-  getReported,
-  getStats,
-} = require("./https/stats");
+const { getStats } = require("./https/stats");
 const {
   sendSignupStarts,
   sendEventStarts,

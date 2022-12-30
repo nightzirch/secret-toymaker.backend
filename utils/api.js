@@ -1,11 +1,6 @@
 const rp = require("request-promise-native");
 const { db } = require("../config/firebase");
-const functions = require("firebase-functions");
 const CollectionTypes = require("../utils/types/CollectionTypes");
-const {
-  getGameAccountUUID,
-  volunteerForNewGiftees,
-} = require("../utils/utils");
 
 const fetchGameAccountFromAPI = async (apiToken) => {
   let url = "https://api.guildwars2.com/v2/account?access_token=" + apiToken;
@@ -51,7 +46,7 @@ const updateAccountData = async (apiToken) => {
     .set(
       {
         lastValid: new Date().toISOString(),
-        id: result.name,
+        id: gameAccountData.name,
       },
       { merge: true }
     )
@@ -66,12 +61,12 @@ const updateAccountData = async (apiToken) => {
     .get();
   if (!gameAccountEventsSnapshot.empty) {
     gameAccountEventsSnapshot.forEach(async (gameAccountEventDoc) => {
-      gameAccountEvent = gameAccountEventDoc.data();
+      const gameAccountEvent = gameAccountEventDoc.data();
       const participationDoc = await gameAccountEvent.participation.get();
 
       if (participationDoc.exists) {
         await participationDoc
-          .set({ id: result.name }, { merge: true })
+          .set({ id: gameAccountData.name }, { merge: true })
           .catch((err) => {
             console.log({ error: err });
           });

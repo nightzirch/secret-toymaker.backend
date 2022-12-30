@@ -15,18 +15,21 @@ class Toymaker {
       emailEventUpdates: false,
       emailFutureEvents: false,
       pushEventUpdates: false,
-      pushFutureEvents: false
+      pushFutureEvents: false,
     };
   }
 
   static fromData(data) {
     const providerData = data.providerData.reduce(
-      (providers, p) => Object.assign({}, providers, { [p.providerId]: {
-        providerId: p.providerId || null,
-        email: p.email || null,
-        uid: p.uid || null,
-        username: p.username || null
-      } }),
+      (providers, p) =>
+        Object.assign({}, providers, {
+          [p.providerId]: {
+            providerId: p.providerId || null,
+            email: p.email || null,
+            uid: p.uid || null,
+            username: p.username || null,
+          },
+        }),
       {}
     );
 

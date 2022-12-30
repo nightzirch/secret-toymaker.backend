@@ -10,3 +10,9 @@ firebase-debug.log
 functions/testing.js
 config/app-engine-service-account-key.json
 .env
+
+# logs
+*.log
+
+# Firebase config
+config/secret-toymaker-*.json

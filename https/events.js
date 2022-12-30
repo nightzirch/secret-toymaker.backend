@@ -16,14 +16,14 @@ const getEvents = functions.https.onCall(
       const allEvents = await getAllEvents();
 
       // Filter out inactive upcoming events
-      Object.values(allEvents).forEach(event => {
+      Object.values(allEvents).forEach((event) => {
         const now = new Date();
         const signupStart = new Date(event.signupStart);
 
-        if(now < signupStart) {
+        if (now < signupStart) {
           delete allEvents[event.year];
         }
-      })
+      });
 
       return { success: allEvents };
     } catch (e) {
