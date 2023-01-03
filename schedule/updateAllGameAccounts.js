@@ -8,7 +8,7 @@ const { updateAccountData } = require("../utils/api");
  * @return {updateAllGameAccounts~inner} - returns a scheduled function that runs 1 minute past every hour.
  */
 const updateAllGameAccounts = functions.pubsub.schedule("40 * * * *").onRun(
-// const updateAllGameAccounts = functions.https.onCall(
+  // const updateAllGameAccounts = functions.https.onCall(
   /**
    * Updates all accounts with fresh data from the GW2 API
    * @inner
@@ -24,14 +24,22 @@ const updateAllGameAccounts = functions.pubsub.schedule("40 * * * *").onRun(
     }
 
     // TODO: batch requests
+    let errors = 0;
+    let successes = 0;
 
     for (let gameAccountDoc of allGameAccountsSnapshot.docs) {
       const gameAccount = gameAccountDoc.data();
-      await updateAccountData(gameAccount);
+      const result = await updateAccountData(gameAccount);
+      if (result.error) errors += 1;
+      else if (result.success) successes += 1;
     }
 
-    console.log("Update all game accounts finished.");
-    return { success: "Update all game accounts finished." };
+    console.log(
+      `Update all game accounts finished. ${successes} successes, ${errors} errors.`
+    );
+    return {
+      success: `Update all game accounts finished. ${successes} successes, ${errors} errors.`,
+    };
   }
 );
 
