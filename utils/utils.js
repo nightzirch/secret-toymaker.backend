@@ -18,7 +18,7 @@ const getCurrentEvent = async () => {
   }
   let currentEvent;
 
-  events.forEach(doc => {
+  events.forEach((doc) => {
     if (!currentEvent) {
       const event = doc.data();
       const signupStart = event.signupStart.toDate();
@@ -44,7 +44,7 @@ const getCurrentEvent = async () => {
 const getEvent = async (year) => {
   const ref = db.collection(CollectionTypes.EVENTS).doc(year);
   const doc = await ref.get();
-  
+
   if (!doc.exists) {
     return { error: `Cannot find event for year ${year}` };
   }
@@ -60,7 +60,7 @@ const getEvent = async (year) => {
  * @param {string} user - user object or uid
  * @returns {Result}
  */
-const getGameAccountUUID = async user => {
+const getGameAccountUUID = async (user) => {
   // this is the uid, but cna accept the user object as well
   if (user.uid) {
     user = user.uid;
@@ -89,7 +89,7 @@ const getGameAccountUUID = async user => {
  * @param {string} gameAccountUUID - Takes gameAccountUUID and returns the gw2 account
  * @returns {Result}
  */
-const getGw2Account = async gameAccountUUID => {
+const getGw2Account = async (gameAccountUUID) => {
   let userAccount = await db
     .collection(CollectionTypes.GAME_ACCOUNTS)
     .doc(gameAccountUUID)
@@ -127,7 +127,7 @@ async function getGeneralQueries(field, comparison, value, skip, limit, year) {
     return result;
   }
 
-  results.forEach(doc => {
+  results.forEach((doc) => {
     result.push(doc.data());
   });
 
@@ -184,7 +184,7 @@ const volunteerForNewGiftees = async (user, count, year) => {
 
   let resultsArray = [];
 
-  noGift.forEach(doc => {
+  noGift.forEach((doc) => {
     let data = doc.data();
     if (
       // check to see if they themselves have sent their gift
@@ -268,7 +268,7 @@ async function markGifteeAccount(
     .collection(CollectionTypes.EVENTS__PARTICIPANTS)
     .doc(gameAccountUUID)
     .get();
-    
+
   if (!currentValueRaw.exists) {
     return { error: "no such user" };
   }
@@ -312,7 +312,7 @@ async function markGifteeAccount(
     return {
       error: "Error in marking " + field,
       entryResult: entryResult,
-      entryResult2: entryResult2
+      entryResult2: entryResult2,
     };
   }
 }
@@ -327,7 +327,10 @@ async function markGifteeAccount(
  * @param {string} year - Year of the event
  * @returns {Result}
  */
-async function markGw2Account({ gifterGameAccountUUID, user, field, value }, year) {
+async function markGw2Account(
+  { gifterGameAccountUUID, user, field, value },
+  year
+) {
   // gifter owns teh record
 
   if (!gifterGameAccountUUID) {
@@ -398,5 +401,5 @@ module.exports = {
   getGeneralQueries,
   volunteerForNewGiftees,
   markGifteeAccount,
-  markGw2Account
+  markGw2Account,
 };

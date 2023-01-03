@@ -23,7 +23,7 @@ const getAlerts = functions.https.onCall(
 
     const alerts = [];
 
-    alertsSnapshot.forEach(alertDoc => {
+    alertsSnapshot.forEach((alertDoc) => {
       const alert = alertDoc.data();
       alerts.push(Object.assign(alert, { id: alertDoc.id }));
     });

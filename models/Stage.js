@@ -12,8 +12,8 @@ class Stage {
   constructor(type, year, name, start, end) {
     this.type = type;
     this.year = year;
-    this.name = name,
-    this.start = typeof start === "object" ? start.toISOString() : start;
+    (this.name = name),
+      (this.start = typeof start === "object" ? start.toISOString() : start);
     this.end = typeof end === "object" ? end.toISOString() : end;
   }
 
@@ -36,7 +36,13 @@ class Stage {
     } else if (eventStart < now && now < eventEnd && !isMatchingDone) {
       currentStage = new Stage(StageTypes.MATCHING, year, name);
     } else if (eventStart < now && now < eventEnd && isMatchingDone) {
-      currentStage = new Stage(StageTypes.GIFTING, year, name, eventStart, eventEnd);
+      currentStage = new Stage(
+        StageTypes.GIFTING,
+        year,
+        name,
+        eventStart,
+        eventEnd
+      );
     }
 
     return currentStage;

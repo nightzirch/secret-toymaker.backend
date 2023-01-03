@@ -21,14 +21,13 @@ const participate = functions.https.onCall(
    * @param {boolean} [data.participate] - true or undefined if user is entering, false if theya re withdrawing
    * @param {string} [data.notes] - Note for teh gifter
    * @param {string} [data.year] - Year of the event
-   * @param {object} [context] - This is used by firebase, no idea what it does, I think its added automatically
    * @returns {Result}
    */
-  async ({ user, participate, notes, year }, context) => {
-    if(!year) {
+  async ({ user, participate, notes, year }) => {
+    if (!year) {
       return { error: "Missing year parameter." };
     }
-    
+
     let gameAccountUUID = await getGameAccountUUID(user);
     if (gameAccountUUID.error) {
       return { error: "no API key set" };
@@ -99,7 +98,7 @@ const participate = functions.https.onCall(
       const participationUpdateResult = await participationDoc
         .update({ notes })
         .then(() => ({ success: "Successfully updated participant." }))
-        .catch(error => ({ error: "Failed to update.", trace: error }));
+        .catch((error) => ({ error: "Failed to update.", trace: error }));
       return participationUpdateResult;
     }
 
@@ -114,7 +113,7 @@ const participate = functions.https.onCall(
       notes,
       id: gameAccount.success.id,
       isFreeToPlay: gameAccount.success.isFreeToPlay,
-      year
+      year,
     };
 
     // adding the user to participants so they can get a match
@@ -133,7 +132,7 @@ const participate = functions.https.onCall(
         .then(() => {
           return true;
         })
-        .catch(e => {
+        .catch((e) => {
           console.log("Error when updating participant.", e);
           return false;
         });
@@ -143,7 +142,7 @@ const participate = functions.https.onCall(
         .then(() => {
           return true;
         })
-        .catch(e => {
+        .catch((e) => {
           console.log("Error when setting participant.", e);
           return false;
         });
@@ -176,7 +175,7 @@ const participate = functions.https.onCall(
           .collection(CollectionTypes.EVENTS)
           .doc(year)
           .collection(CollectionTypes.EVENTS__PARTICIPANTS)
-          .doc(gameAccountUUID)
+          .doc(gameAccountUUID),
       })
       .then(() => {
         return true;
@@ -204,10 +203,9 @@ const participateStatus = functions.https.onCall(
    * @inner
    * @param {object} data - details about the giftee
    * @param {string} data.user - user object or uid
-   * @param {object} [context] - This is used by firebase, no idea what it does, I think its added automatically
    * @returns {Result}
    */
-  async ({ user }, context) => {
+  async ({ user }) => {
     let gameAccountUUID = await getGameAccountUUID(user);
     if (gameAccountUUID.error) {
       return { error: "no API key set" };
@@ -224,13 +222,13 @@ const participateStatus = functions.https.onCall(
 
     let participationRefs = [];
 
-    events.forEach(doc => {
+    events.forEach((doc) => {
       let participationData = doc.data();
       participationRefs.push(participationData.participation);
     });
 
     let results = await Promise.all(
-      participationRefs.map(async docPromise => {
+      participationRefs.map(async (docPromise) => {
         const doc = await docPromise.get();
         if (!doc.exists) return null;
 
@@ -241,12 +239,12 @@ const participateStatus = functions.https.onCall(
           year,
           gameAccountUUID,
           entryDate,
-          notes
+          notes,
         };
       })
     );
 
-    results = results.filter(e => e);
+    results = results.filter((e) => e);
 
     return { success: results };
   }

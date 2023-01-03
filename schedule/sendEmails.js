@@ -4,9 +4,8 @@ const { getCurrentStage } = require("../utils/getCurrentStage");
 const { StageTypes } = require("../config/constants");
 const { db } = require("../config/firebase");
 const {
-  filterToymakersConsents,
   filterParticipantsConsentsByEventDoc,
-  sendEmailTemplate
+  sendEmailTemplate,
 } = require("../utils/email");
 
 /**
@@ -17,15 +16,14 @@ const sendSignupStarts = functions.pubsub.schedule("1 * * * *").onRun(
   /**
    * Sends an email to everyone who are registered at the site.
    * @inner
-   * @param {object} [context] - This is used by firebase, no idea what it does, I think its added automatically
    * @returns {undefined}
    */
-  async (context) => {
+  async () => {
     const currentStage = await getCurrentStage();
 
     if (currentStage.type !== StageTypes.SIGNUP) {
       return {
-        success: `Not in signup stage. Skipping sending emails. Current stage is ${currentStage.type}`
+        success: `Not in signup stage. Skipping sending emails. Current stage is ${currentStage.type}`,
       };
     }
 
@@ -45,15 +43,13 @@ const sendSignupStarts = functions.pubsub.schedule("1 * * * *").onRun(
       return { success: "Emails for signing up are already sent." };
     }
 
-    const participantsWithConsentResponse = await filterParticipantsConsentsByEventDoc(
-      "emailFutureEvents",
-      eventDoc
-    );
+    const participantsWithConsentResponse =
+      await filterParticipantsConsentsByEventDoc("emailFutureEvents", eventDoc);
 
     if (participantsWithConsentResponse.error) {
       return {
         error: "Failed to get participants with consents.",
-        trace: participantsWithConsentResponse.error
+        trace: participantsWithConsentResponse.error,
       };
     }
     const participantsWithConsent = participantsWithConsentResponse.success;
@@ -61,20 +57,20 @@ const sendSignupStarts = functions.pubsub.schedule("1 * * * *").onRun(
     // TODO: Create the template and add data.
     // TODO: Change so we send individual emails so we can use variables.
     const response = await sendEmailTemplate({
-      userIds: participantsWithConsent.map(p => p.uid),
+      userIds: participantsWithConsent.map((p) => p.uid),
       templateName: "signupStart",
-      templateData: { year }
+      templateData: { year },
     });
 
     if (response.success) {
       const emailsStatusUpdateResponse = await eventDoc
         .update({
-          emails: Object.assign({}, emails, { signupStart: true })
+          emails: Object.assign({}, emails, { signupStart: true }),
         })
         .then(() => ({ success: "Successfully updated emails's sent state." }))
-        .catch(error => ({
+        .catch((error) => ({
           error: "Failed to update emails' sent state.",
-          trace: error
+          trace: error,
         }));
 
       if (emailsStatusUpdateResponse.success) {
@@ -82,12 +78,12 @@ const sendSignupStarts = functions.pubsub.schedule("1 * * * *").onRun(
       }
       return {
         error: "Could not  sent emails for signing up.",
-        trace: emailsStatusUpdateResponse.error
+        trace: emailsStatusUpdateResponse.error,
       };
     } else {
       return {
         error: "Could nnot send emails for signing up.",
-        trace: response.error
+        trace: response.error,
       };
     }
   }
@@ -101,15 +97,14 @@ const sendEventStarts = functions.pubsub.schedule("1 * * * *").onRun(
   /**
    * Sends an email to everyone who are participating in the current event, about us entered the gifting stage.
    * @inner
-   * @param {object} [context] - This is used by firebase, no idea what it does, I think its added automatically
    * @returns {undefined}
    */
-  async (context) => {
+  async () => {
     const currentStage = await getCurrentStage();
 
     if (currentStage.type !== StageTypes.GIFTING) {
       return {
-        success: `Not in gifting stage. Skipping sending emails. Current stage is ${currentStage.type}`
+        success: `Not in gifting stage. Skipping sending emails. Current stage is ${currentStage.type}`,
       };
     }
 
@@ -129,36 +124,34 @@ const sendEventStarts = functions.pubsub.schedule("1 * * * *").onRun(
       return { success: "Emails for event start are already sent." };
     }
 
-    const participantsWithConsentResponse = await filterParticipantsConsentsByEventDoc(
-      null,
-      eventDoc
-    );
+    const participantsWithConsentResponse =
+      await filterParticipantsConsentsByEventDoc(null, eventDoc);
 
     if (participantsWithConsentResponse.error) {
       return {
         error: "Failed to get participants with consents.",
-        trace: participantsWithConsentResponse.error
+        trace: participantsWithConsentResponse.error,
       };
     }
     const participantsWithConsent = participantsWithConsentResponse.success;
 
     const response = await Promise.all(
       participantsWithConsent
-        .filter(p => p.uid && p.email)
-        .map(p =>
+        .filter((p) => p.uid && p.email)
+        .map((p) =>
           sendEmailTemplate({
             userIds: [p.uid],
             templateName: "eventStart",
             templateData: {
               eventName,
               username: p.name || p.id || "Toymaker",
-              year
-            }
+              year,
+            },
           })
         )
     )
-      .then(responses => responses[0])
-      .catch(e => {
+      .then((responses) => responses[0])
+      .catch((e) => {
         console.log(e);
         return { error: "Failed to send emails", trace: e };
       });
@@ -170,12 +163,12 @@ const sendEventStarts = functions.pubsub.schedule("1 * * * *").onRun(
     if (response.success) {
       const emailsStatusUpdateResponse = await eventDoc
         .update({
-          emails: Object.assign({}, emails, { eventStart: true })
+          emails: Object.assign({}, emails, { eventStart: true }),
         })
         .then(() => ({ success: "Successfully updated emails's sent state." }))
-        .catch(error => ({
+        .catch((error) => ({
           error: "Failed to update emails' sent state.",
-          trace: error
+          trace: error,
         }));
 
       if (emailsStatusUpdateResponse.success) {
@@ -184,12 +177,12 @@ const sendEventStarts = functions.pubsub.schedule("1 * * * *").onRun(
 
       return {
         error: "Could not send emails about event start.",
-        trace: emailsStatusUpdateResponse.error
+        trace: emailsStatusUpdateResponse.error,
       };
     } else {
       return {
         error: "Could not send emails about event start.",
-        trace: response.error
+        trace: response.error,
       };
     }
   }
@@ -203,14 +196,13 @@ const sendEventEnd = functions.pubsub.schedule("1 * * * *").onRun(
   /**
    * Sends an email to everyone who are participating in the current event and did not yet send their gift.
    * @inner
-   * @param {object} [context] - This is used by firebase, no idea what it does, I think its added automatically
    * @returns {undefined}
    */
-  async context => {}
+  async () => {}
 );
 
 module.exports = {
   sendSignupStarts,
   sendEventStarts,
-  sendEventEnd
+  sendEventEnd,
 };

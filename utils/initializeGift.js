@@ -58,21 +58,21 @@ const initializeGift = async (
       toymakerGameAccountUUID,
       giftee: gifteeDoc,
       gifteeGameAccountUUID,
-      notes: giftee.notes
+      notes: giftee.notes,
     })
     .then(() => true)
     .catch(() => false);
 
   let isToymakerGiftInitialized = await toymakerDoc
     .update({
-      outgoingGifts: admin.firestore.FieldValue.arrayUnion(giftDoc)
+      outgoingGifts: admin.firestore.FieldValue.arrayUnion(giftDoc),
     })
     .then(() => true)
     .catch(() => false);
 
   let isGifteeGiftInitialized = await gifteeDoc
     .update({
-      incomingGifts: admin.firestore.FieldValue.arrayUnion(giftDoc)
+      incomingGifts: admin.firestore.FieldValue.arrayUnion(giftDoc),
     })
     .then(() => true)
     .catch(() => false);
@@ -142,15 +142,15 @@ const updateBatchWithInitialGift = async (
     toymakerGameAccountUUID,
     giftee: gifteeDoc,
     gifteeGameAccountUUID,
-    notes: giftee.notes
+    notes: giftee.notes,
   };
 
   let gifteeData = {
-    incomingGifts: admin.firestore.FieldValue.arrayUnion(giftDoc)
+    incomingGifts: admin.firestore.FieldValue.arrayUnion(giftDoc),
   };
 
   let toymakerData = {
-    outgoingGifts: admin.firestore.FieldValue.arrayUnion(giftDoc)
+    outgoingGifts: admin.firestore.FieldValue.arrayUnion(giftDoc),
   };
 
   batch.set(giftDoc, giftData);

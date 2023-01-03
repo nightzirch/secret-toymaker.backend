@@ -1,4 +1,4 @@
-const { auth, db } = require("../config/firebase");
+const { auth } = require("../config/firebase");
 
 const getAllAuthUsers = async (nextPageToken, authUsers = []) => {
   const result = await auth.listUsers(1000, nextPageToken);

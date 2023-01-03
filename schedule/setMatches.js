@@ -14,10 +14,9 @@ const setMatches = functions.pubsub.schedule("1 * * * *").onRun(
   /**
    * Runs the script that matches all participant in the active event.
    * @inner
-   * @param {object} [context] - This is used by firebase, no idea what it does, I think its added automatically
    * @returns {undefined}
    */
-  async context => {
+  async () => {
     const currentStage = await getCurrentStage();
 
     if (currentStage.type !== StageTypes.MATCHING) {

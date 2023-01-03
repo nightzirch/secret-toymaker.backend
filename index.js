@@ -7,6 +7,7 @@ const {
   updateApiKey,
   volunteer,
 } = require("./https/gw2Accounts");
+const { updateAllGameAccounts } = require("./schedule/updateAllGameAccounts");
 const {
   getGifts,
   donateGift,
@@ -14,12 +15,7 @@ const {
   updateGiftReceivedStatus,
   updateGiftReportedStatus,
 } = require("./https/gifts");
-const {
-  getNotSent,
-  getNotReceived,
-  getReported,
-  getStats,
-} = require("./https/stats");
+const { getStats } = require("./https/stats");
 const {
   sendSignupStarts,
   sendEventStarts,
@@ -60,6 +56,9 @@ exports.sendEventEnd = sendEventEnd;
 
 // Scheduled function for setting matches
 exports.setMatches = setMatches;
+
+// Scheduled function for updating account info
+exports.updateAllGameAccounts = updateAllGameAccounts;
 
 // Triggers
 exports.onUserCreated = onUserCreated;
