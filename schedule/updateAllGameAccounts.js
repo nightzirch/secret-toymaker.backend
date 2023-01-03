@@ -8,7 +8,7 @@ const { updateAccountData } = require("../utils/api");
  * @return {updateAllGameAccounts~inner} - returns a scheduled function that runs 1 minute past every hour.
  */
 const updateAllGameAccounts = functions
-  .runWith({ timeoutSeconds: 900 }) // Timeout: 15 minutes
+  .runWith({ timeoutSeconds: 540 }) // Timeout: 9 minutes
   .pubsub.schedule("40 * * * *")
   .onRun(
     // const updateAllGameAccounts = functions.https.onCall(
