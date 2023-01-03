@@ -2,8 +2,10 @@ const rp = require("request-promise-native");
 const { db } = require("../config/firebase");
 const CollectionTypes = require("../utils/types/CollectionTypes");
 
-const fetchGameAccountFromAPI = async (apiToken) => {
-  let url = "https://api.guildwars2.com/v2/account?access_token=" + apiToken;
+const fetchGameAccountFromAPI = async (gameAccount) => {
+  let url =
+    "https://api.guildwars2.com/v2/account?access_token=" +
+    gameAccount.apiToken;
   let accountData = await rp({ url: url, resolveWithFullResponse: true })
     .then((response) => {
       return { headers: response.headers, body: response.body };
@@ -16,7 +18,8 @@ const fetchGameAccountFromAPI = async (apiToken) => {
     // Something went wrong
 
     if (accountData.error.statusCode === 401) {
-      return { error: "API key does not have access" };
+      console.log(`API key does not have access for ${gameAccount.id}`);
+      return { error: `API key does not have access for ${gameAccount.id}` };
     }
     if (accountData.error.statusCode === 404) {
       return { error: "Link not found" };
@@ -25,58 +28,73 @@ const fetchGameAccountFromAPI = async (apiToken) => {
   }
 
   // result is json so format it
-  return JSON.parse({ success: accountData.body });
+  return { success: JSON.parse(accountData.body) };
 };
 
-const updateAccountData = async (apiToken) => {
-  const gameAccountData = fetchGameAccountFromAPI(apiToken);
-  if (gameAccountData.error) {
-    return gameAccountData;
+const updateAccountData = async (gameAccount) => {
+  const { apiToken } = gameAccount;
+  const gameAccountFromApiResult = await fetchGameAccountFromAPI(apiToken);
+  if (gameAccountFromApiResult.error) {
+    return gameAccountFromApiResult;
   }
 
-  let gameAccountUUID = gameAccountData.id;
+  const { success: gameAccountFromApi } = gameAccountFromApiResult;
+
+  // let gameAccountUUID = gameAccountFromApi.id;
 
   // Reference the specific gameAccount for this UUID
-  const gameAccountDoc = db
-    .collection(CollectionTypes.GAME_ACCOUNTS)
-    .doc(gameAccountUUID);
+  // const gameAccountDoc = db
+  //   .collection(CollectionTypes.GAME_ACCOUNTS)
+  //   .doc(gameAccountUUID);
 
-  // Update gameAccount collection
-  await gameAccountDoc
-    .set(
-      {
-        lastValid: new Date().toISOString(),
-        id: gameAccountData.name,
-      },
-      { merge: true }
-    )
-    .catch((err) => {
-      console.log(err);
-      return { error: err };
-    });
+  if (gameAccount.id !== gameAccountFromApi.name) {
+    // Mismatch between API and our data. Must update our records.
+    console.log(
+      `Mismatch! ${gameAccount.id} changed id to ${gameAccountFromApi.name}.`
+    );
 
-  // Update all user's participations
-  const gameAccountEventsSnapshot = await gameAccountDoc
-    .collection(CollectionTypes.GAME_ACCOUNTS__EVENTS)
-    .get();
-  if (!gameAccountEventsSnapshot.empty) {
-    gameAccountEventsSnapshot.forEach(async (gameAccountEventDoc) => {
-      const gameAccountEvent = gameAccountEventDoc.data();
-      const participationDoc = await gameAccountEvent.participation.get();
+    // Update gameAccount collection
+    // await gameAccountDoc
+    //   .set(
+    //     {
+    //       lastValid: new Date().toISOString(),
+    //       id: gameAccountFromApi.name,
+    //     },
+    //     { merge: true }
+    //   )
+    //   .catch((err) => {
+    //     console.log(err);
+    //     return { error: err };
+    //   });
 
-      if (participationDoc.exists) {
-        await participationDoc
-          .set({ id: gameAccountData.name }, { merge: true })
-          .catch((err) => {
-            console.log({ error: err });
-          });
-      }
-    });
+    // // Update all user's participations
+    // const gameAccountEventsSnapshot = await gameAccountDoc
+    //   .collection(CollectionTypes.GAME_ACCOUNTS__EVENTS)
+    //   .get();
+    // if (!gameAccountEventsSnapshot.empty) {
+    //   gameAccountEventsSnapshot.forEach(async (gameAccountEventDoc) => {
+    //     const gameAccountEvent = gameAccountEventDoc.data();
+    //     const participationDoc = await gameAccountEvent.participation.get();
+
+    //     if (participationDoc.exists) {
+    //       await participationDoc
+    //         .set({ id: gameAccountFromApi.name }, { merge: true })
+    //         .catch((err) => {
+    //           console.log({ error: err });
+    //         });
+    //     }
+    //   });
+    // }
+    //
+    // console.log(
+    //   `Successfully updated gameAccount for ${gameAccountFromApi.name}`
+    // );
+    return {
+      success: `Successfully updated gameAccount id from ${gameAccount.id} to ${gameAccountFromApi.name}`,
+    };
   }
 
-  // return that is is a success
-  console.log(`Successfully updating account info for ${apiToken}`);
-  return { success: `Account info updated for ${apiToken}` };
+  return { success: `No need to update gameAccount for ${gameAccount.id}` };
 };
 
 module.exports = { updateAccountData };
