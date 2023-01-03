@@ -32,8 +32,7 @@ const fetchGameAccountFromAPI = async (gameAccount) => {
 };
 
 const updateAccountData = async (gameAccount) => {
-  const { apiToken } = gameAccount;
-  const gameAccountFromApiResult = await fetchGameAccountFromAPI(apiToken);
+  const gameAccountFromApiResult = await fetchGameAccountFromAPI(gameAccount);
   if (gameAccountFromApiResult.error) {
     return gameAccountFromApiResult;
   }
