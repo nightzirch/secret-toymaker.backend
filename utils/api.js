@@ -72,9 +72,10 @@ const updateAccountData = async (gameAccount) => {
     if (!gameAccountEventsSnapshot.empty) {
       gameAccountEventsSnapshot.forEach(async (gameAccountEventDoc) => {
         const gameAccountEvent = gameAccountEventDoc.data();
-        const participationDoc = await gameAccountEvent.participation.get();
+        const participationDoc = gameAccountEvent.participation;
+        const participation = await participationDoc.get();
 
-        if (participationDoc.exists) {
+        if (participation.exists) {
           await participationDoc
             .set({ id: gameAccountFromApi.name }, { merge: true })
             .catch((err) => {
@@ -104,7 +105,9 @@ const updateAccountData = async (gameAccount) => {
         return { error: err };
       });
     console.log(`No need to update gameAccount id for ${gameAccount.id}`);
-    return { success: `No need to update gameAccount id for ${gameAccount.id}` };
+    return {
+      success: `No need to update gameAccount id for ${gameAccount.id}`,
+    };
   }
 };
 
