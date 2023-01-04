@@ -26,12 +26,8 @@ const fetchGameAccountFromAPI = async (gameAccount) => {
     return { error: "Unable to get data" };
   }
 
-  // Dear Colin Johanson, forgive me for what I am about to do
-  let testData = JSON.parse(accountData.body);
-  testData.name = "test.1234";
-
   // result is json so format it
-  return { success: testData };
+  return { success: JSON.parse(accountData.body) };
 };
 
 const updateAccountData = async (gameAccount) => {
