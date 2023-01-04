@@ -16,7 +16,6 @@ const fetchGameAccountFromAPI = async (gameAccount) => {
 
   if (accountData.error) {
     // Something went wrong
-
     if (accountData.error.statusCode === 401) {
       console.log(`API key does not have access for ${gameAccount.id}`);
       return { error: `API key does not have access for ${gameAccount.id}` };
@@ -39,12 +38,12 @@ const updateAccountData = async (gameAccount) => {
 
   const { success: gameAccountFromApi } = gameAccountFromApiResult;
 
-  // let gameAccountUUID = gameAccountFromApi.id;
+  let gameAccountUUID = gameAccountFromApi.id;
 
   // Reference the specific gameAccount for this UUID
-  // const gameAccountDoc = db
-  //   .collection(CollectionTypes.GAME_ACCOUNTS)
-  //   .doc(gameAccountUUID);
+  const gameAccountDoc = db
+    .collection(CollectionTypes.GAME_ACCOUNTS)
+    .doc(gameAccountUUID);
 
   if (gameAccount.id !== gameAccountFromApi.name) {
     // Mismatch between API and our data. Must update our records.
@@ -53,47 +52,60 @@ const updateAccountData = async (gameAccount) => {
     );
 
     // Update gameAccount collection
-    // await gameAccountDoc
-    //   .set(
-    //     {
-    //       lastValid: new Date().toISOString(),
-    //       id: gameAccountFromApi.name,
-    //     },
-    //     { merge: true }
-    //   )
-    //   .catch((err) => {
-    //     console.log(err);
-    //     return { error: err };
-    //   });
+    await gameAccountDoc
+      .set(
+        {
+          id: gameAccountFromApi.name,
+          lastValid: new Date().toISOString(),
+        },
+        { merge: true }
+      )
+      .catch((err) => {
+        console.log(err);
+        return { error: err };
+      });
 
-    // // Update all user's participations
-    // const gameAccountEventsSnapshot = await gameAccountDoc
-    //   .collection(CollectionTypes.GAME_ACCOUNTS__EVENTS)
-    //   .get();
-    // if (!gameAccountEventsSnapshot.empty) {
-    //   gameAccountEventsSnapshot.forEach(async (gameAccountEventDoc) => {
-    //     const gameAccountEvent = gameAccountEventDoc.data();
-    //     const participationDoc = await gameAccountEvent.participation.get();
+    // Update all user's participations
+    const gameAccountEventsSnapshot = await gameAccountDoc
+      .collection(CollectionTypes.GAME_ACCOUNTS__EVENTS)
+      .get();
+    if (!gameAccountEventsSnapshot.empty) {
+      gameAccountEventsSnapshot.forEach(async (gameAccountEventDoc) => {
+        const gameAccountEvent = gameAccountEventDoc.data();
+        const participationDoc = await gameAccountEvent.participation.get();
 
-    //     if (participationDoc.exists) {
-    //       await participationDoc
-    //         .set({ id: gameAccountFromApi.name }, { merge: true })
-    //         .catch((err) => {
-    //           console.log({ error: err });
-    //         });
-    //     }
-    //   });
-    // }
-    //
-    // console.log(
-    //   `Successfully updated gameAccount for ${gameAccountFromApi.name}`
-    // );
+        if (participationDoc.exists) {
+          await participationDoc
+            .set({ id: gameAccountFromApi.name }, { merge: true })
+            .catch((err) => {
+              console.log({ error: err });
+            });
+        }
+      });
+    }
+
+    console.log(
+      `Successfully updated gameAccount for ${gameAccountFromApi.name}`
+    );
     return {
       success: `Successfully updated gameAccount id from ${gameAccount.id} to ${gameAccountFromApi.name}`,
     };
+  } else {
+    // Update gameAccount collection
+    await gameAccountDoc
+      .set(
+        {
+          lastValid: new Date().toISOString(),
+        },
+        { merge: true }
+      )
+      .catch((err) => {
+        console.log(err);
+        return { error: err };
+      });
+    console.log(`No need to update gameAccount id for ${gameAccount.id}`);
+    return { success: `No need to update gameAccount id for ${gameAccount.id}` };
   }
-
-  return { success: `No need to update gameAccount for ${gameAccount.id}` };
 };
 
 module.exports = { updateAccountData };
