@@ -9,7 +9,7 @@ const { updateAccountData } = require("../utils/api");
  */
 const updateAllGameAccounts = functions
   .runWith({ timeoutSeconds: 540 }) // Timeout: 9 minutes
-  .pubsub.schedule("0 0 1 * *")
+  .pubsub.schedule("0 * * * *")
   .onRun(
     // const updateAllGameAccounts = functions.https.onCall(
     /**
