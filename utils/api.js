@@ -28,7 +28,7 @@ const fetchGameAccountFromAPI = async (gameAccount) => {
 
   // Dear Colin Johanson, forgive me for what I am about to do
   let testData = JSON.parse(accountData.body);
-  testData.name = "test.1234"
+  testData.name = "test.1234";
 
   // result is json so format it
   return { success: testData };
@@ -76,9 +76,10 @@ const updateAccountData = async (gameAccount) => {
     if (!gameAccountEventsSnapshot.empty) {
       gameAccountEventsSnapshot.forEach(async (gameAccountEventDoc) => {
         const gameAccountEvent = gameAccountEventDoc.data();
-        const participationDoc = await gameAccountEvent.participation.get();
+        const participationDoc = gameAccountEvent.participation;
+        const participation = await participationDoc.get();
 
-        if (participationDoc.exists) {
+        if (participation.exists) {
           await participationDoc
             .set({ id: gameAccountFromApi.name }, { merge: true })
             .catch((err) => {
@@ -108,7 +109,9 @@ const updateAccountData = async (gameAccount) => {
         return { error: err };
       });
     console.log(`No need to update gameAccount id for ${gameAccount.id}`);
-    return { success: `No need to update gameAccount id for ${gameAccount.id}` };
+    return {
+      success: `No need to update gameAccount id for ${gameAccount.id}`,
+    };
   }
 };
 
