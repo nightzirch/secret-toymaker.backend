@@ -20,7 +20,7 @@ const updateAllGameAccounts = functions
     async () => {
       // We want to update all gameAccounts that haven't been updated in a month
       const cutoffDate = new Date();
-      cutoffDate.setDate(cutoffDate.getDate() - 30);
+      // cutoffDate.setDate(cutoffDate.getDate() - 30);
 
       const allGameAccountsSnapshot = await db
         .collection(CollectionTypes.GAME_ACCOUNTS)
