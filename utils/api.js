@@ -11,14 +11,26 @@ const fetchGameAccountFromAPI = async (gameAccount) => {
       return { headers: response.headers, body: response.body };
     })
     .catch((error) => {
-      console.log(`Error while fetching API for for ${gameAccount.id}`, error);
+      console.log(`Error while fetching API for for ${gameAccount.id}`);
       return { error: error };
     });
 
   if (accountData.error) {
     // Something went wrong
+    if (accountData.error.statusCode === 400) {
+      console.log(`API key does not exist for ${gameAccount.id}`);
+
+      // TODO: remove API key
+      // TODO: send a reminder email
+
+      return { error: `API key does not have access for ${gameAccount.id}` };
+    }
     if (accountData.error.statusCode === 401) {
       console.log(`API key does not have access for ${gameAccount.id}`);
+
+      // TODO: remove API key
+      // TODO: send a reminder email
+
       return { error: `API key does not have access for ${gameAccount.id}` };
     }
     if (accountData.error.statusCode === 404) {
@@ -64,10 +76,7 @@ const updateAccountData = async (gameAccount) => {
         { merge: true }
       )
       .catch((err) => {
-        console.log(
-          `Error while updating gameAccount for ${gameAccountUUID}`,
-          err
-        );
+        console.log(`Error while updating gameAccount for ${gameAccountUUID}`);
         return { error: err };
       });
 
@@ -86,8 +95,7 @@ const updateAccountData = async (gameAccount) => {
             .set({ id: gameAccountFromApi.name }, { merge: true })
             .catch((err) => {
               console.log(
-                `Error while updating participations for ${gameAccountFromApi.name}`,
-                err
+                `Error while updating participations for ${gameAccountFromApi.name}`
               );
             });
         }
@@ -110,10 +118,7 @@ const updateAccountData = async (gameAccount) => {
         { merge: true }
       )
       .catch((err) => {
-        console.log(
-          `Error while updating gameAccount for ${gameAccount.id}`,
-          err
-        );
+        console.log(`Error while updating gameAccount for ${gameAccount.id}`);
         return { error: err };
       });
     console.log(`No need to update gameAccount id for ${gameAccount.id}`);
