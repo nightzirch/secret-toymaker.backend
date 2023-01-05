@@ -11,7 +11,6 @@ const updateAllGameAccounts = functions
   .runWith({ timeoutSeconds: 540 }) // Timeout: 9 minutes
   .pubsub.schedule("0 * * * *")
   .onRun(
-    // const updateAllGameAccounts = functions.https.onCall(
     /**
      * Updates all accounts with fresh data from the GW2 API
      * @inner
@@ -28,7 +27,9 @@ const updateAllGameAccounts = functions
         .get();
       if (allGameAccountsSnapshot.empty) {
         console.log("There are no gameAccounts that needs to be updated.");
-        return { success: "There are no gameAccounts that needs to be updated." };
+        return {
+          success: "There are no gameAccounts that needs to be updated.",
+        };
       }
 
       // TODO: batch requests
