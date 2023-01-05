@@ -11,6 +11,7 @@ const fetchGameAccountFromAPI = async (gameAccount) => {
       return { headers: response.headers, body: response.body };
     })
     .catch((error) => {
+      console.log(`Error while fetching API for for ${gameAccount.id}`, error);
       return { error: error };
     });
 
@@ -21,9 +22,11 @@ const fetchGameAccountFromAPI = async (gameAccount) => {
       return { error: `API key does not have access for ${gameAccount.id}` };
     }
     if (accountData.error.statusCode === 404) {
-      return { error: "Link not found" };
+      console.log(`URL not found for ${gameAccount.id}`);
+      return { error: `URL not found for ${gameAccount.id}` };
     }
-    return { error: "Unable to get data" };
+    console.log(`Unable to get data for ${gameAccount.id}`);
+    return { error: `Unable to get data for ${gameAccount.id}` };
   }
 
   // result is json so format it
@@ -61,7 +64,10 @@ const updateAccountData = async (gameAccount) => {
         { merge: true }
       )
       .catch((err) => {
-        console.log(err);
+        console.log(
+          `Error while updating gameAccount for ${gameAccountUUID}`,
+          err
+        );
         return { error: err };
       });
 
@@ -79,7 +85,10 @@ const updateAccountData = async (gameAccount) => {
           await participationDoc
             .set({ id: gameAccountFromApi.name }, { merge: true })
             .catch((err) => {
-              console.log({ error: err });
+              console.log(
+                `Error while updating participations for ${gameAccountFromApi.name}`,
+                err
+              );
             });
         }
       });
@@ -101,7 +110,10 @@ const updateAccountData = async (gameAccount) => {
         { merge: true }
       )
       .catch((err) => {
-        console.log(err);
+        console.log(
+          `Error while updating gameAccount for ${gameAccount.id}`,
+          err
+        );
         return { error: err };
       });
     console.log(`No need to update gameAccount id for ${gameAccount.id}`);
