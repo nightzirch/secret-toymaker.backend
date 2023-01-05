@@ -3,30 +3,63 @@ const { db } = require("../config/firebase");
 const CollectionTypes = require("../utils/types/CollectionTypes");
 
 const fetchGameAccountFromAPI = async (gameAccount) => {
-  let url =
-    "https://api.guildwars2.com/v2/account?access_token=" +
-    gameAccount.apiToken;
+  const { apiToken, gameAccountUUID, id } = gameAccount;
+
+  let url = `https://api.guildwars2.com/v2/account?access_token=${apiToken}`;
   let accountData = await rp({ url: url, resolveWithFullResponse: true })
     .then((response) => {
       return { headers: response.headers, body: response.body };
     })
     .catch((error) => {
-      console.log(`Error while fetching API for for ${gameAccount.id}`, error);
+      console.log(`Error while fetching API for for ${id}`);
       return { error: error };
     });
 
   if (accountData.error) {
+    const gameAccountDoc = db
+      .collection(CollectionTypes.GAME_ACCOUNTS)
+      .doc(gameAccountUUID);
+
     // Something went wrong
-    if (accountData.error.statusCode === 401) {
-      console.log(`API key does not have access for ${gameAccount.id}`);
-      return { error: `API key does not have access for ${gameAccount.id}` };
+    if ([400, 401].includes(accountData.error.statusCode)) {
+      switch (accountData.error.statusCode) {
+        case 400:
+          console.log(`API key does not exist for ${id}`);
+          break;
+        case 401:
+          console.log(`API key does not have access for ${id}`);
+          break;
+        default:
+          console.log(
+            `Weird error when fetching API key for ${id}. This should never happen.`
+          );
+          break;
+      }
+
+      // Remove API key
+      await gameAccountDoc
+        .set(
+          {
+            apiToken: null,
+            lastValid: new Date().toISOString(),
+          },
+          { merge: true }
+        )
+        .catch((err) => {
+          console.log(`Error while removing API token for ${gameAccountUUID}`);
+          return { error: err };
+        });
+
+      // TODO: send a reminder email
+
+      return { error: `API key didn't work for ${id}. API Token removed from gameAccount.` };
     }
     if (accountData.error.statusCode === 404) {
-      console.log(`URL not found for ${gameAccount.id}`);
-      return { error: `URL not found for ${gameAccount.id}` };
+      console.log(`URL not found for ${id}`);
+      return { error: `URL not found for ${id}` };
     }
-    console.log(`Unable to get data for ${gameAccount.id}`);
-    return { error: `Unable to get data for ${gameAccount.id}` };
+    console.log(`Unable to get data for ${id}`);
+    return { error: `Unable to get data for ${id}` };
   }
 
   // result is json so format it
@@ -64,10 +97,7 @@ const updateAccountData = async (gameAccount) => {
         { merge: true }
       )
       .catch((err) => {
-        console.log(
-          `Error while updating gameAccount for ${gameAccountUUID}`,
-          err
-        );
+        console.log(`Error while updating gameAccount for ${gameAccountUUID}`);
         return { error: err };
       });
 
@@ -86,8 +116,7 @@ const updateAccountData = async (gameAccount) => {
             .set({ id: gameAccountFromApi.name }, { merge: true })
             .catch((err) => {
               console.log(
-                `Error while updating participations for ${gameAccountFromApi.name}`,
-                err
+                `Error while updating participations for ${gameAccountFromApi.name}`
               );
             });
         }
@@ -110,10 +139,7 @@ const updateAccountData = async (gameAccount) => {
         { merge: true }
       )
       .catch((err) => {
-        console.log(
-          `Error while updating gameAccount for ${gameAccount.id}`,
-          err
-        );
+        console.log(`Error while updating gameAccount for ${gameAccount.id}`);
         return { error: err };
       });
     console.log(`No need to update gameAccount id for ${gameAccount.id}`);
