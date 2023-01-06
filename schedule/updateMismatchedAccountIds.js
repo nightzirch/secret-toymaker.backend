@@ -32,10 +32,9 @@ const updateMismatchedAccountIds = functions
 
       for (let gameAccountDoc of allGameAccountsSnapshot.docs) {
         const gameAccount = gameAccountDoc.data();
+        const eventsSnapshot = await gameAccount.events.get();
 
-        for (let eventDoc of gameAccountDoc.collection(
-          CollectionTypes.GAME_ACCOUNTS__EVENTS
-        ).docs) {
+        for (let eventDoc of eventsSnapshot.docs) {
           const event = await eventDoc.get();
           const participationDoc = await event.participation.get();
           const participation = participationDoc.data();
