@@ -457,7 +457,10 @@ const getGifts = functions.https.onCall(
     if (!incomingGiftsSnapshot.empty) {
       incomingGiftsSnapshot.forEach(async (doc) => {
         let data = doc.data();
-        let toymakerDoc = await data.toymaker.get();
+        let toymakerDoc = await db
+          .collection(CollectionTypes.GAME_ACCOUNTS)
+          .doc(data.toymakerGameAccountUUID)
+          .get();
 
         if (toymakerDoc.exists) {
           let toymaker = toymakerDoc.data();
@@ -479,6 +482,10 @@ const getGifts = functions.https.onCall(
           } else {
             incomingGifts.push(giftData);
           }
+        } else {
+          console.log(
+            `Could not find toymaker with UUID ${data.toymakerGameAccountUUID}`
+          );
         }
       });
     }
