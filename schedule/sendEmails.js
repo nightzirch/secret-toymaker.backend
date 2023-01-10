@@ -237,7 +237,7 @@ const sendExtending2022 = functions.pubsub.schedule("1 * * * *").onRun(
     }
 
     const participantsWithConsentResponse =
-      await filterParticipantsConsentsByEventDoc("emailFutureEvents", eventDoc);
+      await filterParticipantsConsentsByEventDoc(null, eventDoc);
 
     if (participantsWithConsentResponse.error) {
       return {
