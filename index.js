@@ -9,9 +9,6 @@ const {
 } = require("./https/gw2Accounts");
 const { updateAllGameAccounts } = require("./schedule/updateAllGameAccounts");
 const {
-  updateMismatchedAccountIds,
-} = require("./schedule/updateMismatchedAccountIds");
-const {
   getGifts,
   donateGift,
   updateGiftSentStatus,
@@ -64,7 +61,6 @@ exports.setMatches = setMatches;
 
 // Scheduled function for updating account info
 exports.updateAllGameAccounts = updateAllGameAccounts;
-exports.updateMismatchedAccountIds = updateMismatchedAccountIds;
 
 // Triggers
 exports.onUserCreated = onUserCreated;
