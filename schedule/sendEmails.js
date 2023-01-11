@@ -201,8 +201,90 @@ const sendEventEnd = functions.pubsub.schedule("1 * * * *").onRun(
   async () => {}
 );
 
+/**
+ * @namespace sendExtending2022
+ * @return {sendExtending2022~inner} - returns a scheduled function that runs 1 minute past every hour.
+ */
+const sendExtending2022 = functions.pubsub.schedule("1 * * * *").onRun(
+  /**
+   * Sends an email to everyone who are registered at the site.
+   * @inner
+   * @returns {undefined}
+   */
+  async () => {
+    const currentStage = await getCurrentStage();
+
+    if (currentStage.type !== StageTypes.GIFTING) {
+      return {
+        success: `Not in gifting stage. Skipping sending emails. Current stage is ${currentStage.type}`,
+      };
+    }
+
+    const { year } = currentStage;
+
+    const eventDoc = db.collection(CollectionTypes.EVENTS).doc(year);
+    const eventSnap = await eventDoc.get();
+
+    if (!eventSnap.exists) {
+      return { error: "Could not find event." };
+    }
+
+    const event = eventSnap.data();
+    const { emails, name } = event;
+
+    if (emails.extending2022) {
+      return { success: "Emails for extending the event are already sent." };
+    }
+
+    const participantsWithConsentResponse =
+      await filterParticipantsConsentsByEventDoc(null, eventDoc);
+
+    if (participantsWithConsentResponse.error) {
+      return {
+        error: "Failed to get participants with consents.",
+        trace: participantsWithConsentResponse.error,
+      };
+    }
+    const participantsWithConsent = participantsWithConsentResponse.success;
+
+    // TODO: Create the template and add data.
+    // TODO: Change so we send individual emails so we can use variables.
+    const response = await sendEmailTemplate({
+      userIds: participantsWithConsent.map((p) => p.uid),
+      templateName: "extending2022",
+      templateData: { name },
+    });
+
+    if (response.success) {
+      const emailsStatusUpdateResponse = await eventDoc
+        .update({
+          emails: Object.assign({}, emails, { extending2022: true }),
+        })
+        .then(() => ({ success: "Successfully updated emails's sent state." }))
+        .catch((error) => ({
+          error: "Failed to update emails' sent state.",
+          trace: error,
+        }));
+
+      if (emailsStatusUpdateResponse.success) {
+        return { success: "Successfully sent emails for signing up." };
+      }
+      return {
+        error: "Could not  sent emails for signing up.",
+        trace: emailsStatusUpdateResponse.error,
+      };
+    } else {
+      return {
+        error: "Could nnot send emails for signing up.",
+        trace: response.error,
+      };
+    }
+  }
+);
+
 module.exports = {
   sendSignupStarts,
   sendEventStarts,
   sendEventEnd,
+  sendExtending2022,
 };
