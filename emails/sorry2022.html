@@ -1,0 +1,574 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <!--[if !mso]><!-->
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <!--<![endif]-->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="x-apple-disable-message-reformatting" />
+    <title></title>
+    <style type="text/css">
+      @import url("https://fonts.googleapis.com/css?family=Montserrat:400,500,600,700"); /* Basics */
+      body {
+        margin: 0;
+        padding: 0;
+        min-width: 100%;
+        background-color: #ffffff;
+      }
+      table {
+        border-spacing: 0;
+        font-family: "Montserrat", "Google Sans", Arial, sans-serif;
+        color: #333333;
+      }
+      td {
+        padding: 0;
+      }
+      img {
+        border: 0;
+      }
+      .wrapper {
+        width: 100%;
+        table-layout: fixed;
+        -webkit-text-size-adjust: 100%;
+        -ms-text-size-adjust: 100%;
+      }
+      .webkit {
+        max-width: 600px;
+      }
+      .outer {
+        margin: 0 auto;
+        width: 100%;
+        max-width: 600px;
+      }
+      .inner {
+        padding: 10px;
+      }
+      .contents {
+        width: 100%;
+      }
+      p {
+        margin: 0;
+      }
+      a {
+        color: #ee6a56;
+        text-decoration: underline;
+        font-family: "Montserrat", "Google Sans", Arial, sans-serif;
+      }
+      .h1 {
+        font-size: 30px !important;
+        font-weight: bold;
+        margin-bottom: 18px;
+      }
+      .h2 {
+        font-size: 26px !important;
+        font-weight: bold;
+        margin-bottom: 12px;
+      }
+      .full-width-image img {
+        width: 100%;
+        max-width: 600px;
+        height: auto;
+      } /* One column layout */
+      .one-column .contents {
+        text-align: left;
+      }
+      .one-column p {
+        font-size: 18px;
+        margin-bottom: 10px;
+      } /*Two column layout*/
+      .two-column {
+        text-align: center;
+        font-size: 0;
+      }
+      .two-column .column {
+        width: 100%;
+        max-width: 300px;
+        display: inline-block;
+        vertical-align: top;
+      }
+      .two-column .contents {
+        font-size: 18px;
+        text-align: left;
+      }
+      .two-column img {
+        width: 100%;
+        max-width: 280px;
+        height: auto;
+      }
+      .two-column .text {
+        padding-top: 10px;
+      } /*Three column layout*/
+      .three-column {
+        text-align: center;
+        font-size: 0;
+        padding-top: 10px;
+        padding-bottom: 10px;
+      }
+      .three-column .column {
+        width: 100%;
+        max-width: 200px;
+        display: inline-block;
+        vertical-align: top;
+      }
+      .three-column img {
+        width: 100%;
+        max-width: 180px;
+        height: auto;
+      }
+      .three-column .contents {
+        font-size: 18px;
+        text-align: center;
+      }
+      .three-column .text {
+        padding-top: 10px;
+      } /* Left sidebar layout */
+      .left-sidebar {
+        text-align: center;
+        font-size: 0;
+      }
+      .left-sidebar .column {
+        width: 100%;
+        display: inline-block;
+        vertical-align: middle;
+      }
+      .left-sidebar .left {
+        max-width: 100px;
+      }
+      .left-sidebar .right {
+        max-width: 500px;
+      }
+      .left-sidebar .img {
+        width: 100%;
+        max-width: 80px;
+        height: auto;
+      }
+      .left-sidebar .contents {
+        font-size: 18px;
+        text-align: center;
+      }
+      .left-sidebar a {
+        color: #85ab70;
+      } /* Right sidebar layout */
+      .right-sidebar {
+        text-align: center;
+        font-size: 0;
+      }
+      .right-sidebar .column {
+        width: 100%;
+        display: inline-block;
+        vertical-align: middle;
+      }
+      .right-sidebar .left {
+        max-width: 100px;
+      }
+      .right-sidebar .right {
+        max-width: 500px;
+      }
+      .right-sidebar .img {
+        width: 100%;
+        max-width: 80px;
+        height: auto;
+      }
+      .right-sidebar .contents {
+        font-size: 18px;
+        text-align: center;
+      }
+      .right-sidebar a {
+        color: #70bbd9;
+      } /*Media Queries*/
+      @media screen and (max-width: 400px) {
+        .two-column .column,
+        .three-column .column {
+          max-width: 100% !important;
+        }
+        .two-column img {
+          max-width: 100% !important;
+        }
+        .three-column img {
+          max-width: 50% !important;
+        }
+      }
+      @media screen and (min-width: 401px) and (max-width: 600px) {
+        .three-column .column {
+          max-width: 33% !important;
+        }
+        .two-column .column {
+          max-width: 50% !important;
+        }
+      }
+    </style>
+    <!--[if (gte mso 9)|(IE)]>
+      <style type="text/css">
+        table {
+          border-collapse: collapse;
+        }
+      </style>
+    <![endif]-->
+    <!--[if (gte mso 9)|(IE)
+      ]><style type="text/css">
+        p {
+          font-family: Arial, sans-serif;
+        }
+        a {
+          font-family: Arial, sans-serif;
+        }
+        table {
+          border-collapse: collapse;
+          font-family: Arial, sans-serif;
+        }
+        td {
+          font-family: Arial, sans-serif;
+        }
+        th {
+          font-family: Arial, sans-serif;
+        }
+        div {
+          font-family: Arial, sans-serif;
+        }
+        img {
+          font-family: Arial, sans-serif;
+        }
+      </style><!
+    [endif]-->
+    <!--[if gte mso 9
+      ]><xml>
+        <o:OfficeDocumentSettings>
+          <o:AllowPNG /> <o:PixelsPerInch>96</o:PixelsPerInch>
+        </o:OfficeDocumentSettings>
+      </xml><!
+    [endif]-->
+  </head>
+  <body>
+    <!-- EMAIL HEADER -->
+    <table
+      role="presentation"
+      cellpadding="0"
+      cellspacing="0"
+      border="0"
+      bgcolor="#362580"
+      width="100%"
+    >
+      <tr>
+        <td>
+          <center class="wrapper">
+            <div class="webkit">
+              <!--[if (gte mso 9)|(IE)]>             <table role="presentation" width="600" align="center">             <tr>             <td>             <![endif]-->
+              <table role="presentation" class="outer" align="center">
+                <!-- CONTENT START -->
+                <!-- ONE COLUMN -->
+                <tr>
+                  <td class="one-column">
+                    <table role="presentation" width="100%">
+                      <tr>
+                        <td
+                          class="inner contents"
+                          align="center"
+                          style="text-align: center"
+                        >
+                          <img
+                            src="https://secrettoymaker.com/images/logo-text.png"
+                            alt="Secret Toymaker"
+                            style="
+                              font-size: 30px;
+                              font-weight: bold;
+                              color: #ffffff;
+                            "
+                            width="400"
+                            height="57"
+                          />
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+                <!-- /ONE COLUMN -->
+                <!-- /CONTENT -->
+              </table>
+              <!--[if (gte mso 9)|(IE)]>             </td>             </tr>             </table>             <![endif]-->
+            </div>
+          </center>
+        </td>
+      </tr>
+    </table>
+    <!-- END HEADER -->
+    <!-- DARK BLUE SECTION -->
+    <table
+      role="presentation"
+      cellpadding="0"
+      cellspacing="0"
+      border="0"
+      bgcolor="#362580"
+      width="100%"
+    >
+      <tr>
+        <td width="100%">
+          <center class="wrapper">
+            <div class="webkit">
+              <!--[if (gte mso 9)|(IE)]>             <table role="presentation" width="600" align="center">             <tr>             <td>             <![endif]-->
+              <!-- THIS IS A SPACER OF 30px -->
+              <table
+                role="presentation"
+                cellpadding="0"
+                cellspacing="0"
+                border="0"
+                width="100%"
+              >
+                <tr>
+                  <td style="font-size: 0; line-height: 30px" height="30">
+                    &nbsp;
+                  </td>
+                </tr>
+              </table>
+              <table role="presentation" class="outer" align="center">
+                <!-- CONTENT START -->
+                <!-- ONE COLUMN - TEXT -->
+                <tr>
+                  <td class="one-column">
+                    <table role="presentation" width="100%">
+                      <tr>
+                        <td class="inner contents">
+                          <p class="h1" style="color: #ffffff">
+                            We are so sorry
+                          </p>
+                          <p style="color: #ffffff">
+                            In our latest email about extending Secret Toymaker
+                            2022, we made a big mistake and exposed the email
+                            addresses of the participants of this year's event.
+                            <br /><br />We are so sorry for breaching your trust
+                            and for exposing your email address.<br /><br />
+                          </p>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+                <!-- /ONE COLUMN -->
+                <!-- ONE COLUMN - CTA -->
+                <tr>
+                  <td class="one-column">
+                    <table role="presentation" width="100%">
+                      <tr>
+                        <td class="inner contents" style="text-align: center">
+                          <!-- LARGE LIGHT PURPLE CTA -->
+                          <div>
+                            <!--[if mso]>                                         <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="http://" style="height:58px;v-text-anchor:middle;width:300px;" arcsize="50%" stroke="f" fillcolor="#bfa2eb">                                         <w:anchorlock/>                                         <center>                                         <![endif]-->
+                            <a
+                              href="https://secrettoymaker.com/events/2022"
+                              style="
+                                background-color: #bfa2eb;
+                                border-radius: 29px;
+                                color: #362580;
+                                display: inline-block;
+                                font-size: 22px;
+                                font-weight: bold;
+                                line-height: 58px;
+                                text-align: center;
+                                text-decoration: none;
+                                width: 300px;
+                                -webkit-text-size-adjust: none;
+                              "
+                              >Check your match <strong>&#8594; </strong></a
+                            >
+                            <!--[if mso]>                                         </center>                                         </v:roundrect>                                         <![endif]-->
+                          </div>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+                <!-- /ONE COLUMN -->
+                <!-- /CONTENT -->
+              </table>
+              <!-- THIS IS A SPACER OF 30px -->
+              <table
+                role="presentation"
+                cellpadding="0"
+                cellspacing="0"
+                border="0"
+                width="100%"
+              >
+                <tr>
+                  <td style="font-size: 0; line-height: 30px" height="30">
+                    &nbsp;
+                  </td>
+                </tr>
+              </table>
+              <!--[if (gte mso 9)|(IE)]>             </td>             </tr>             </table>             <![endif]-->
+            </div>
+          </center>
+        </td>
+      </tr>
+    </table>
+    <!-- END DARK BLUE -->
+    <!-- FOOTER START -->
+    <table
+      role="presentation"
+      cellpadding="0"
+      cellspacing="0"
+      border="0"
+      bgcolor="#150e31"
+      width="100%"
+    >
+      <tr>
+        <td width="100%">
+          <center class="wrapper">
+            <div class="webkit">
+              <!--[if (gte mso 9)|(IE)]>             <table role="presentation" width="600" align="center">             <tr>             <td>             <![endif]-->
+              <!-- THIS IS A SPACER OF 30px -->
+              <table
+                role="presentation"
+                cellpadding="0"
+                cellspacing="0"
+                border="0"
+                width="100%"
+              >
+                <tr>
+                  <td style="font-size: 0; line-height: 30px" height="30">
+                    &nbsp;
+                  </td>
+                </tr>
+              </table>
+              <table role="presentation" class="outer" align="center">
+                <!-- CONTENT START -->
+                <!-- ONE COLUMN -->
+                <tr>
+                  <td class="one-column">
+                    <table role="presentation" width="100%">
+                      <tr>
+                        <td class="inner contents">
+                          <p
+                            style="
+                              font-size: 16px;
+                              color: #ffffff;
+                              font-weight: bold;
+                            "
+                          >
+                            Secret Toymaker
+                          </p>
+                          <p style="font-size: 14px; color: #ffffff">
+                            &copy;Secret Toymaker is a non-profit fan-made site
+                            for Guild Wars 2. Secret Toymaker is in no way
+                            associated with ArenaNet, NCSOFT Corporation or the
+                            Guild Wars 2 trademark.<br /><br />
+                            &copy;ArenaNet, LLC. All rights reserved. All
+                            trademarks are the property of their respective
+                            owners.
+                          </p>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+                <!-- /ONE COLUMN -->
+                <!-- /CONTENT -->
+              </table>
+              <!-- THIS IS A SPACER OF 30px -->
+              <table
+                role="presentation"
+                cellpadding="0"
+                cellspacing="0"
+                border="0"
+                width="100%"
+              >
+                <tr>
+                  <td style="font-size: 0; line-height: 30px" height="30">
+                    &nbsp;
+                  </td>
+                </tr>
+              </table>
+              <!--[if (gte mso 9)|(IE)]>             </td>             </tr>             </table>             <![endif]-->
+            </div>
+          </center>
+        </td>
+      </tr>
+    </table>
+    <!-- END FOOTER -->
+    <!-- CONTRIBUTE SECTION START -->
+    <table
+      role="presentation"
+      cellpadding="0"
+      cellspacing="0"
+      border="0"
+      bgcolor="#0c081d"
+      width="100%"
+    >
+      <tr>
+        <td width="100%">
+          <center class="wrapper">
+            <div class="webkit">
+              <!--[if (gte mso 9)|(IE)]>             <table role="presentation" width="600" align="center">             <tr>             <td>             <![endif]-->
+              <!-- THIS IS A SPACER OF 10px -->
+              <table
+                role="presentation"
+                cellpadding="0"
+                cellspacing="0"
+                border="0"
+                width="100%"
+              >
+                <tr>
+                  <td style="font-size: 0; line-height: 10px" height="10">
+                    &nbsp;
+                  </td>
+                </tr>
+              </table>
+              <table role="presentation" class="outer" align="center">
+                <!-- CONTENT START -->
+                <!-- ONE COLUMN -->
+                <tr>
+                  <td class="one-column">
+                    <table role="presentation" width="100%">
+                      <tr>
+                        <td class="inner contents" style="text-align: center">
+                          <p
+                            style="
+                              font-size: 12px;
+                              color: #ffffff;
+                              margin-bottom: 0;
+                            "
+                          >
+                            Contribute on Github:
+                            <a
+                              href="https://github.com/nightzirch/secret-toymaker.web"
+                              style="color: #ffffff"
+                              target="_blank"
+                              >secret-toymaker.web</a
+                            >
+                            <a
+                              href="https://github.com/nightzirch/secret-toymaker.backend"
+                              style="color: #ffffff"
+                              target="_blank"
+                              >secret-toymaker.backend</a
+                            >
+                          </p>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+                <!-- /ONE COLUMN -->
+                <!-- /CONTENT -->
+              </table>
+              <!-- THIS IS A SPACER OF 10px -->
+              <table
+                role="presentation"
+                cellpadding="0"
+                cellspacing="0"
+                border="0"
+                width="100%"
+              >
+                <tr>
+                  <td style="font-size: 0; line-height: 10px" height="10">
+                    &nbsp;
+                  </td>
+                </tr>
+              </table>
+              <!--[if (gte mso 9)|(IE)]>             </td>             </tr>             </table>             <![endif]-->
+            </div>
+          </center>
+        </td>
+      </tr>
+    </table>
+    <!-- END CONTRIBUTE SECTION -->
+  </body>
+</html>

@@ -21,6 +21,7 @@ const {
   sendEventStarts,
   sendEventEnd,
   sendExtending2022,
+  sendSorry2022,
 } = require("./schedule/sendEmails");
 const { sendSignupReminder } = require("./schedule/sendSignupReminder");
 const { setMatches } = require("./schedule/setMatches");
@@ -55,6 +56,7 @@ exports.sendSignupReminder = sendSignupReminder;
 exports.sendEventStarts = sendEventStarts;
 exports.sendEventEnd = sendEventEnd;
 exports.sendExtending2022 = sendExtending2022;
+exports.sendSorry2022 = sendSorry2022;
 
 // Scheduled function for setting matches
 exports.setMatches = setMatches;

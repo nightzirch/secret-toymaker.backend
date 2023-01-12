@@ -3,7 +3,6 @@ const CollectionTypes = require("../utils/types/CollectionTypes");
 const { getCurrentStage } = require("../utils/getCurrentStage");
 const { StageTypes } = require("../config/constants");
 const { db } = require("../config/firebase");
-const { chunkArray } = require("../utils/array");
 const {
   filterParticipantsConsentsByEventDoc,
   sendEmailTemplate,
@@ -250,12 +249,11 @@ const sendExtending2022 = functions.pubsub.schedule("1 * * * *").onRun(
 
     // Chunking userIds into groups of 500
     const allUserIds = participantsWithConsent.map((p) => p.uid);
-    const chunkedUserIds = chunkArray(allUserIds, 500);
 
     const response = await Promise.all(
-      chunkedUserIds.map((userIds) =>
+      allUserIds.map((userId) =>
         sendEmailTemplate({
-          userIds,
+          userIds: [userId],
           templateName: "extending2022",
           templateData: { name },
         })
@@ -295,9 +293,94 @@ const sendExtending2022 = functions.pubsub.schedule("1 * * * *").onRun(
   }
 );
 
+/**
+ * @namespace sendSorry2022
+ * @return {sendSorry2022~inner} - returns a scheduled function that runs 1 minute past every hour.
+ */
+const sendSorry2022 = functions.pubsub.schedule("1 * * * *").onRun(
+  /**
+   * Sends an email to everyone who are registered at the site.
+   * @inner
+   * @returns {undefined}
+   */
+  async () => {
+    const currentStage = await getCurrentStage();
+
+    const { year } = currentStage;
+
+    const eventDoc = db.collection(CollectionTypes.EVENTS).doc(year);
+    const eventSnap = await eventDoc.get();
+
+    if (!eventSnap.exists) {
+      return { error: "Could not find event." };
+    }
+
+    const event = eventSnap.data();
+    const { emails, name } = event;
+
+    if (emails.sorry2022) {
+      return { success: "Emails apologizing are already sent." };
+    }
+
+    const participantsWithConsentResponse =
+      await filterParticipantsConsentsByEventDoc(null, eventDoc);
+
+    if (participantsWithConsentResponse.error) {
+      return {
+        error: "Failed to get participants with consents.",
+        trace: participantsWithConsentResponse.error,
+      };
+    }
+    const participantsWithConsent = participantsWithConsentResponse.success;
+    const allUserIds = participantsWithConsent.map((p) => p.uid);
+
+    const response = await Promise.all(
+      allUserIds.map((userId) =>
+        sendEmailTemplate({
+          userIds: [userId],
+          templateName: "sorry2022",
+          templateData: { name },
+        })
+      )
+    )
+      .then((responses) => responses[0])
+      .catch((e) => ({ error: "Failed to send emails", trace: e }));
+
+    if (!response) {
+      return { success: "No participants to email." };
+    }
+
+    if (response.success) {
+      const emailsStatusUpdateResponse = await eventDoc
+        .update({
+          emails: Object.assign({}, emails, { sorry2022: true }),
+        })
+        .then(() => ({ success: "Successfully updated emails's sent state." }))
+        .catch((error) => ({
+          error: "Failed to update emails' sent state.",
+          trace: error,
+        }));
+
+      if (emailsStatusUpdateResponse.success) {
+        return { success: "Successfully sent emails apologizing." };
+      }
+      return {
+        error: "Could not  sent emails apologizing.",
+        trace: emailsStatusUpdateResponse.error,
+      };
+    } else {
+      return {
+        error: "Could nnot send emails apologizing.",
+        trace: response.error,
+      };
+    }
+  }
+);
+
 module.exports = {
   sendSignupStarts,
   sendEventStarts,
   sendEventEnd,
   sendExtending2022,
+  sendSorry2022,
 };
