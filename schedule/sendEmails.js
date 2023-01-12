@@ -3,6 +3,7 @@ const CollectionTypes = require("../utils/types/CollectionTypes");
 const { getCurrentStage } = require("../utils/getCurrentStage");
 const { StageTypes } = require("../config/constants");
 const { db } = require("../config/firebase");
+const { chunkArray } = require("../utils/array");
 const {
   filterParticipantsConsentsByEventDoc,
   sendEmailTemplate,
@@ -247,13 +248,25 @@ const sendExtending2022 = functions.pubsub.schedule("1 * * * *").onRun(
     }
     const participantsWithConsent = participantsWithConsentResponse.success;
 
-    // TODO: Create the template and add data.
-    // TODO: Change so we send individual emails so we can use variables.
-    const response = await sendEmailTemplate({
-      userIds: participantsWithConsent.map((p) => p.uid),
-      templateName: "extending2022",
-      templateData: { name },
-    });
+    // Chunking userIds into groups of 500
+    const allUserIds = participantsWithConsent.map((p) => p.uid);
+    const chunkedUserIds = chunkArray(allUserIds, 500);
+
+    const response = await Promise.all(
+      chunkedUserIds.map((userIds) =>
+        sendEmailTemplate({
+          userIds,
+          templateName: "extending2022",
+          templateData: { name },
+        })
+      )
+    )
+      .then((responses) => responses[0])
+      .catch((e) => ({ error: "Failed to send emails", trace: e }));
+
+    if (!response) {
+      return { success: "No participants to email." };
+    }
 
     if (response.success) {
       const emailsStatusUpdateResponse = await eventDoc
