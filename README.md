@@ -10,7 +10,7 @@
 
 ### Requirements
 
-- `node@10.17.0` important!
+- `node@18` important!
 
 ### Getting started
 
