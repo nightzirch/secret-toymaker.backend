@@ -10,14 +10,16 @@
 
 ### Requirements
 
-- `node@10.17.0` important!
+- `node@18` important!
 
 ### Getting started
 
 - Clone the project.
-- Change directory into `/functions`.
 - Run `npm i`.
-- Run `npm start` or `npm run serve`. Can be ran from either root or inside `/functions` directory.
+- You also need Firebase Tools before you can run this.
+    - `npm install -g firebase-tools`
+    - In addition you need to login to firebase `firebase login`
+- Run `npm start` or `npm run serve`. Can be ran from root.
 - Now you can run the secret-toymaker.web with local functions.
 
 
